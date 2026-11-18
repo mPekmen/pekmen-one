@@ -1,0 +1,18 @@
+title = "Pekmen One Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "pekmen-keystore-or-secret-file"
+description = "Prevent accidental commits of keystore or local secrets references"
+regex = '''(?i)(storePassword|keyPassword|SUPABASE_SERVICE_ROLE_KEY|PRIVATE KEY-----)'''
+tags = ["secret", "android", "supabase"]
+
+[allowlist]
+description = "Allow documentation examples and empty placeholder docs"
+paths = [
+  '''^SECURITY\.md$''',
+  '''^docs/.*\.md$''',
+  '''^scripts/verify-security\.ps1$''',
+]

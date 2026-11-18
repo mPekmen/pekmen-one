@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_focus">Odak</string>
+    <string name="nav_insights">Özet</string>
+    <string name="nav_settings">Ayarlar</string>
+
+    <string name="profile_study">Çalışma</string>
+    <string name="profile_work">İş</string>
+    <string name="profile_sleep">Uyku</string>
+    <string name="profile_personal">Kişisel</string>
+    <string name="profile_custom">Özel</string>
+
+    <string name="duration_hours_minutes">%1$s sa %2$s dk</string>
+    <string name="duration_minutes">%1$s dk</string>
+    <string name="duration_seconds">%1$s sn</string>
+
+    <string name="action_save">Kaydet</string>
+    <string name="action_cancel">İptal</string>
+    <string name="action_delete">Sil</string>
+    <string name="action_edit">Düzenle</string>
+    <string name="action_close">Kapat</string>
+</resources>

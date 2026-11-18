@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_theme_section">Appearance</string>
+    <string name="settings_theme_system">Follow Android system</string>
+    <string name="settings_theme_dark">Dark (Midnight Violet)</string>
+    <string name="settings_theme_light">Light (Daylight Violet)</string>
+    <string name="settings_privacy_section">Privacy &amp; Open Source</string>
+    <string name="settings_privacy_offline_body">Offline-only in M0/M1. No network permission is requested; data stays on your device under AGPL-3.0.</string>
+</resources>

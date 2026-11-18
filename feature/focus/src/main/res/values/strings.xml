@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="focus_title">Focus</string>
+    <string name="focus_foundation_subtitle">Focus foundation initialized. Timer engine arrives in M1.</string>
+</resources>

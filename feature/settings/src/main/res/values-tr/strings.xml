@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_theme_section">Görünüm</string>
+    <string name="settings_theme_system">Android sistemini izle</string>
+    <string name="settings_theme_dark">Koyu (Midnight Violet)</string>
+    <string name="settings_theme_light">Açık (Daylight Violet)</string>
+    <string name="settings_privacy_section">Gizlilik ve Açık Kaynak</string>
+    <string name="settings_privacy_offline_body">M0/M1 aşamasında yalnızca çevrimdışı çalışır. Ağ izni istenmez; verileriniz AGPL-3.0 kapsamında cihazınızda kalır.</string>
+</resources>
