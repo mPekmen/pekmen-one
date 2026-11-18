@@ -19,4 +19,8 @@
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
     <string name="action_close">Close</string>
+
+    <string name="mode_pomodoro">Pomodoro</string>
+    <string name="mode_stopwatch">Stopwatch</string>
+    <string name="mode_custom">Custom</string>
 </resources>

@@ -1,5 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="insights_title">Özet</string>
-    <string name="insights_foundation_subtitle">Gerçek Room günlük ve haftalık özetleri M1 ile eklenecek.</string>
+    <string name="insights_log_past_button">Geçmiş kayıt</string>
+    <string name="insights_today_card_title">Bugün</string>
+    <string name="insights_week_card_title">Son 7 gün</string>
+    <string name="insights_metric_focus">Net odak</string>
+    <string name="insights_metric_break">Mola</string>
+    <string name="insights_metric_sessions">Oturum</string>
+    <string name="insights_metric_avg_rating">Ort. kalite</string>
+    <string name="insights_profile_breakdown_title">Profile göre (7g)</string>
+    <string name="insights_recent_sessions_title">Tamamlanan oturumlar</string>
+    <string name="insights_empty_title">Henüz tamamlanan oturum yok</string>
+    <string name="insights_empty_body">Gerçek günlük ve haftalık istatistikleri görmek için bir odak oturumu başlatın veya geçmiş çalışma ekleyin.</string>
+
+    <string name="insights_badge_manual">Manuel</string>
+    <string name="insights_badge_adjusted">Düzeltildi</string>
+    <string name="insights_badge_reboot">Yeniden baş. korumalı</string>
+    <string name="insights_rating_short">%1$s/5</string>
+    <string name="insights_session_line">%1$s odak · %2$s mola</string>
+    <string name="insights_session_timestamp">%1$s · %2$s</string>
+
+    <string name="insights_manual_title">Geçmiş çalışma ekle</string>
+    <string name="insights_edit_title">Oturumu düzenle</string>
+    <string name="insights_field_day">Gün</string>
+    <string name="insights_day_today">Bugün</string>
+    <string name="insights_day_yesterday">Dün</string>
+    <string name="insights_day_two_ago">2g önce</string>
+    <string name="insights_day_three_ago">3g önce</string>
+    <string name="insights_field_start_time">Başlangıç saati (24s)</string>
+    <string name="insights_field_hour">Saat</string>
+    <string name="insights_field_minute">Dk</string>
+    <string name="insights_field_focus_min">Odak (dk)</string>
+    <string name="insights_field_break_min">Mola (dk)</string>
+    <string name="insights_field_profile">Profil</string>
+    <string name="insights_field_rating">Kalite (1–5)</string>
+    <string name="insights_field_note">Not (isteğe bağlı)</string>
+    <string name="insights_delete_confirm">Silmek için tekrar dokunun</string>
+    <string name="insights_error_invalid_entry">Süreleri kontrol edin ve başlangıç zamanının gelecekte olmadığından emin olun.</string>
+    <string name="insights_chart_cd">Haftalık net odak sütun grafiği</string>
 </resources>

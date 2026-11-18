@@ -5,6 +5,39 @@
     <string name="settings_theme_system">Android sistemini izle</string>
     <string name="settings_theme_dark">Koyu (Midnight Violet)</string>
     <string name="settings_theme_light">Açık (Daylight Violet)</string>
+
+    <string name="settings_rhythm_section">Odak ritmi</string>
+    <string name="settings_rollover_label">Gün dönümü saati</string>
+    <string name="settings_rollover_hint">Saat %1$s öncesi başlayan oturumlar bir önceki güne sayılır.</string>
+    <string name="settings_auto_breaks">Pomodoro molalarını otomatik başlat</string>
+    <string name="settings_auto_next_focus">Mola bitince odağı otomatik başlat</string>
+
+    <string name="settings_profiles_section">Odak profilleri</string>
+    <string name="settings_profiles_add">Yeni profil</string>
+    <string name="settings_profile_summary">%1$s dk odak · %2$s dk mola</string>
+    <string name="settings_profile_edit_title">Profili düzenle</string>
+    <string name="settings_profile_create_title">Odak profili oluştur</string>
+    <string name="settings_profile_name_label">Profil adı</string>
+    <string name="settings_profile_color_label">Vurgu rengi</string>
+    <string name="settings_profile_color_cd">Profil vurgu rengini seç</string>
+    <string name="settings_profile_default_mode">Varsayılan sayaç modu</string>
+    <string name="settings_profile_work_min">Odak (dk)</string>
+    <string name="settings_profile_short_break">Kısa mola (dk)</string>
+    <string name="settings_profile_long_break">Uzun mola (dk)</string>
+    <string name="settings_profile_cycles">Uzun mola döngüsü</string>
+    <string name="settings_profile_error_name">Bir profil adı girin.</string>
+
+    <string name="settings_diagnostics_section">Sistem hazırlığı</string>
+    <string name="settings_notif_status_title">Sayaç bildirimleri</string>
+    <string name="settings_exact_alarm_title">Tam zamanlı aşama alarmları</string>
+    <string name="settings_status_granted">Hazır</string>
+    <string name="settings_status_missing">İzin verilmedi</string>
+    <string name="settings_status_fallback">Esnek alarm yedeği etkin</string>
+    <string name="settings_action_open_system">Yönet</string>
+
     <string name="settings_privacy_section">Gizlilik ve Açık Kaynak</string>
-    <string name="settings_privacy_offline_body">M0/M1 aşamasında yalnızca çevrimdışı çalışır. Ağ izni istenmez; verileriniz AGPL-3.0 kapsamında cihazınızda kalır.</string>
+    <string name="settings_privacy_offline_body">M1 sürümünde tamamen çevrimdışıdır. INTERNET izni istenmez; tüm odak kayıtları AGPL-3.0 kapsamında cihazınızda kalır.</string>
+
+    <string name="settings_cd_decrease_rollover">Gün dönümü saatini azalt</string>
+    <string name="settings_cd_increase_rollover">Gün dönümü saatini artır</string>
 </resources>

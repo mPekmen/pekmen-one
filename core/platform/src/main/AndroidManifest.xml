@@ -1,1 +1,33 @@
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Optional runtime notification permission (Android 13+) for live timer & transitions -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Optional exact alarm access for precise Pomodoro / Custom phase end notifications -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Required to reconcile interrupted sessions safely after device reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Tactile feedback on phase transition notifications -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application>
+        <receiver
+            android:name=".FocusActionReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".FocusAlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".BootCompletedReceiver"
+            android:directBootAware="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

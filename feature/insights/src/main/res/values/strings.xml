@@ -1,5 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="insights_title">Summary</string>
-    <string name="insights_foundation_subtitle">Real daily and weekly Room summaries arrive in M1.</string>
+    <string name="insights_log_past_button">Log session</string>
+    <string name="insights_today_card_title">Today</string>
+    <string name="insights_week_card_title">Last 7 days</string>
+    <string name="insights_metric_focus">Net focus</string>
+    <string name="insights_metric_break">Break</string>
+    <string name="insights_metric_sessions">Sessions</string>
+    <string name="insights_metric_avg_rating">Avg quality</string>
+    <string name="insights_profile_breakdown_title">By profile (7d)</string>
+    <string name="insights_recent_sessions_title">Completed sessions</string>
+    <string name="insights_empty_title">No completed sessions yet</string>
+    <string name="insights_empty_body">Start a focus session or log a past study block to see real daily and weekly trends.</string>
+
+    <string name="insights_badge_manual">Manual</string>
+    <string name="insights_badge_adjusted">Adjusted</string>
+    <string name="insights_badge_reboot">Reboot-safe</string>
+    <string name="insights_rating_short">%1$s/5</string>
+    <string name="insights_session_line">%1$s focus · %2$s break</string>
+    <string name="insights_session_timestamp">%1$s · %2$s</string>
+
+    <string name="insights_manual_title">Log past session</string>
+    <string name="insights_edit_title">Edit session</string>
+    <string name="insights_field_day">Day</string>
+    <string name="insights_day_today">Today</string>
+    <string name="insights_day_yesterday">Yesterday</string>
+    <string name="insights_day_two_ago">2d ago</string>
+    <string name="insights_day_three_ago">3d ago</string>
+    <string name="insights_field_start_time">Start time (24h)</string>
+    <string name="insights_field_hour">Hour</string>
+    <string name="insights_field_minute">Min</string>
+    <string name="insights_field_focus_min">Focus (min)</string>
+    <string name="insights_field_break_min">Break (min)</string>
+    <string name="insights_field_profile">Profile</string>
+    <string name="insights_field_rating">Quality (1–5)</string>
+    <string name="insights_field_note">Note (optional)</string>
+    <string name="insights_delete_confirm">Tap again to delete</string>
+    <string name="insights_error_invalid_entry">Check duration and ensure start time is not in the future.</string>
+    <string name="insights_chart_cd">Weekly net focus bar chart</string>
 </resources>

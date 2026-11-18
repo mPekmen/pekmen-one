@@ -45,7 +45,7 @@ jobs:
         run: ./gradlew licenseeDebug --stacktrace
 
       - name: Run unit, DAO, repository & Robolectric tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew :core:model:test testDebugUnitTest --stacktrace
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace

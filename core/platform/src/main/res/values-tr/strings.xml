@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_focus_ongoing_name">Aktif Odak Sayacı</string>
+    <string name="channel_focus_ongoing_desc">Odak veya mola oturumu sürerken sessiz canlı sayaç bildirimi</string>
+    <string name="channel_focus_transitions_name">Aşama Uyarıları ve Kurtarma</string>
+    <string name="channel_focus_transitions_desc">Pomodoro veya özel süre bittiğinde ya da cihaz yeniden başlatıldığında uyarır</string>
+
+    <string name="notif_public_ongoing_title">Pekmen One</string>
+    <string name="notif_public_ongoing_body">Odak oturumu aktif</string>
+
+    <string name="notif_phase_focus">Odak</string>
+    <string name="notif_phase_short_break">Kısa mola</string>
+    <string name="notif_phase_long_break">Uzun mola</string>
+
+    <string name="notif_running_title">%1$s · %2$s</string>
+    <string name="notif_running_body">Sayaç çalışıyor</string>
+    <string name="notif_paused_title">%1$s · Duraklatıldı</string>
+    <string name="notif_paused_body">Kaydedilen net odak: %1$s</string>
+    <string name="notif_reboot_paused_title">%1$s yeniden başlatma sonrası duraklatıldı</string>
+    <string name="notif_reboot_paused_body">Kapalı kalınan süre hariç tutuldu. Kaydedilen: %1$s</string>
+
+    <string name="notif_awaiting_title">%1$s · Aşama tamamlandı</string>
+    <string name="notif_awaiting_next_body">%1$s başlatılmaya hazır</string>
+    <string name="notif_awaiting_finish_body">Hedef süre doldu. İnceleyip kaydetmek için açın</string>
+
+    <string name="notif_action_pause">Duraklat</string>
+    <string name="notif_action_resume">Devam Et</string>
+    <string name="notif_action_start_next">Sonrakini Başlat</string>
+    <string name="notif_action_finish">Bitir</string>
+    <string name="notif_duration_hm">%1$s sa %2$s dk</string>
+    <string name="notif_duration_m">%1$s dk</string>
+
+    <string name="notif_profile_study">Çalışma</string>
+    <string name="notif_profile_work">İş</string>
+    <string name="notif_profile_sleep">Uyku</string>
+    <string name="notif_profile_personal">Kişisel</string>
+    <string name="notif_profile_custom">Özel</string>
+</resources>

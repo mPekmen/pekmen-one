@@ -19,4 +19,8 @@
     <string name="action_delete">Sil</string>
     <string name="action_edit">Düzenle</string>
     <string name="action_close">Kapat</string>
+
+    <string name="mode_pomodoro">Pomodoro</string>
+    <string name="mode_stopwatch">Kronometre</string>
+    <string name="mode_custom">Özel</string>
 </resources>

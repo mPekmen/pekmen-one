@@ -36,4 +36,17 @@ class UuidV7Test {
         assertFalse(UuidV7.isValidUuidV7("not-a-uuid"))
         assertFalse(UuidV7.isValidUuidV7("550e8400-e29b-41d4-a716-446655440000"))
     }
+
+    @Test
+    fun `minor backward clock jitter stays monotonic while historical timestamps reset`() {
+        val base = 1_760_200_000_000L
+        val first = UuidV7.generate(base)
+        val minorJitter = UuidV7.generate(base - 250L)
+        assertTrue(first < minorJitter)
+        assertEquals(base, UuidV7.extractTimestampMs(minorJitter))
+
+        val historicalEpoch = 1_750_000_000_000L
+        val historical = UuidV7.generate(historicalEpoch)
+        assertEquals(historicalEpoch, UuidV7.extractTimestampMs(historical))
+    }
 }

@@ -3,8 +3,10 @@ package net.pekmen.one
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
 import net.pekmen.one.core.designsystem.theme.PekmenOneTheme
 import net.pekmen.one.navigation.PekmenAppShell
@@ -22,40 +24,54 @@ class PekmenNavigationSmokeTest {
 
     @Test
     @Config(qualifiers = "en")
-    fun `navigates across top-level destinations in English`() {
+    fun `navigates across M1 screens in English`() {
         val app = ApplicationProvider.getApplicationContext<PekmenApplication>()
         composeRule.setContent {
             PekmenOneTheme {
                 PekmenAppShell(
                     widthSizeClass = WindowWidthSizeClass.Compact,
-                    userPreferencesRepository = app.container.userPreferencesRepository
+                    sessionRepository = app.container.sessionRepository,
+                    profileRepository = app.container.profileRepository,
+                    historyRepository = app.container.historyRepository,
+                    userPreferencesRepository = app.container.userPreferencesRepository,
+                    diagnosticsRepository = app.container.diagnosticsRepository
                 )
             }
         }
 
-        composeRule.onNodeWithText("Focus foundation initialized. Timer engine arrives in M1.").assertIsDisplayed()
+        composeRule.onNodeWithText("Start focus").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Summary").performClick()
-        composeRule.onNodeWithText("Real daily and weekly Room summaries arrive in M1.").assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Last 7 days").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Last 7 days").assertIsDisplayed()
         composeRule.onNodeWithText("Settings").performClick()
         composeRule.onNodeWithText("Dark (Midnight Violet)").assertIsDisplayed()
     }
 
     @Test
     @Config(qualifiers = "tr")
-    fun `navigates across top-level destinations in Turkish`() {
+    fun `navigates across M1 screens in Turkish`() {
         val app = ApplicationProvider.getApplicationContext<PekmenApplication>()
         composeRule.setContent {
             PekmenOneTheme {
                 PekmenAppShell(
                     widthSizeClass = WindowWidthSizeClass.Compact,
-                    userPreferencesRepository = app.container.userPreferencesRepository
+                    sessionRepository = app.container.sessionRepository,
+                    profileRepository = app.container.profileRepository,
+                    historyRepository = app.container.historyRepository,
+                    userPreferencesRepository = app.container.userPreferencesRepository,
+                    diagnosticsRepository = app.container.diagnosticsRepository
                 )
             }
         }
 
-        composeRule.onNodeWithText("Odak temeli hazırlandı. Zamanlayıcı motoru M1 ile eklenecek.").assertIsDisplayed()
+        composeRule.onNodeWithText("Odağı başlat").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Özet").performClick()
-        composeRule.onNodeWithText("Gerçek Room günlük ve haftalık özetleri M1 ile eklenecek.").assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Son 7 gün").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Son 7 gün").assertIsDisplayed()
         composeRule.onNodeWithText("Ayarlar").performClick()
         composeRule.onNodeWithText("Koyu (Midnight Violet)").assertIsDisplayed()
     }

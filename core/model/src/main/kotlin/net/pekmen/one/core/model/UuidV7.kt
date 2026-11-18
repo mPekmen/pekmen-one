@@ -17,20 +17,21 @@ object UuidV7 {
         require(epochMs >= 0L) { "Epoch timestamp must be non-negative: $epochMs" }
 
         val timestampAndCounter = synchronized(lock) {
-            var ts = epochMs
-            if (ts <= lastTimestampMs) {
-                ts = lastTimestampMs
+            val isReset = lastTimestampMs < 0L ||
+                epochMs > lastTimestampMs ||
+                (lastTimestampMs - epochMs) > MAX_BACKWARD_DRIFT_MS
+            if (isReset) {
+                lastTimestampMs = epochMs
+                lastCounter = random.nextInt(INITIAL_COUNTER_BOUND)
+            } else {
                 if (lastCounter < MAX_COUNTER) {
                     lastCounter += 1
                 } else {
-                    ts += 1L
+                    lastTimestampMs += 1L
                     lastCounter = random.nextInt(INITIAL_COUNTER_BOUND)
                 }
-            } else {
-                lastTimestampMs = ts
-                lastCounter = random.nextInt(INITIAL_COUNTER_BOUND)
             }
-            ts to lastCounter
+            lastTimestampMs to lastCounter
         }
 
         val timestamp = timestampAndCounter.first
@@ -62,6 +63,7 @@ object UuidV7 {
         return parsed.mostSignificantBits ushr 16
     }
 
+    private const val MAX_BACKWARD_DRIFT_MS = 5_000L
     private const val MAX_COUNTER = 0x0FFF
     private const val INITIAL_COUNTER_BOUND = 0x0800
     private const val TIMESTAMP_MASK = 0x0000_FFFF_FFFF_FFFFL

@@ -10,9 +10,11 @@ regex = '''(?i)(storePassword|keyPassword|SUPABASE_SERVICE_ROLE_KEY|PRIVATE KEY-
 tags = ["secret", "android", "supabase"]
 
 [allowlist]
-description = "Allow documentation examples and empty placeholder docs"
+description = "Allow documentation examples and skip transient Gradle/build artifacts"
 paths = [
   '''^SECURITY\.md$''',
   '''^docs/.*\.md$''',
   '''^scripts/verify-security\.ps1$''',
+  '''^\.gradle/''',
+  '''(^|/)build/''',
 ]

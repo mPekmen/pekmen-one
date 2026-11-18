@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_focus_ongoing_name">Active Focus Timer</string>
+    <string name="channel_focus_ongoing_desc">Silent live chronometer while a focus or break session is active</string>
+    <string name="channel_focus_transitions_name">Phase Alerts &amp; Recovery</string>
+    <string name="channel_focus_transitions_desc">Alerts when a Pomodoro or custom timer finishes or recovers after reboot</string>
+
+    <string name="notif_public_ongoing_title">Pekmen One</string>
+    <string name="notif_public_ongoing_body">Focus session active</string>
+
+    <string name="notif_phase_focus">Focus</string>
+    <string name="notif_phase_short_break">Short break</string>
+    <string name="notif_phase_long_break">Long break</string>
+
+    <string name="notif_running_title">%1$s · %2$s</string>
+    <string name="notif_running_body">Timer is running</string>
+    <string name="notif_paused_title">%1$s · Paused</string>
+    <string name="notif_paused_body">Net focus recorded: %1$s</string>
+    <string name="notif_reboot_paused_title">%1$s paused after reboot</string>
+    <string name="notif_reboot_paused_body">Powered-off time was excluded. Recorded: %1$s</string>
+
+    <string name="notif_awaiting_title">%1$s · Phase complete</string>
+    <string name="notif_awaiting_next_body">Ready to start %1$s</string>
+    <string name="notif_awaiting_finish_body">Target reached. Open app to review and save</string>
+
+    <string name="notif_action_pause">Pause</string>
+    <string name="notif_action_resume">Resume</string>
+    <string name="notif_action_start_next">Start next</string>
+    <string name="notif_action_finish">Finish</string>
+    <string name="notif_duration_hm">%1$sh %2$sm</string>
+    <string name="notif_duration_m">%1$sm</string>
+
+    <string name="notif_profile_study">Study</string>
+    <string name="notif_profile_work">Work</string>
+    <string name="notif_profile_sleep">Sleep</string>
+    <string name="notif_profile_personal">Personal</string>
+    <string name="notif_profile_custom">Custom</string>
+</resources>

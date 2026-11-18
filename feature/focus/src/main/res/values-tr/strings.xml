@@ -1,5 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="focus_title">Odak</string>
-    <string name="focus_foundation_subtitle">Odak temeli hazırlandı. Zamanlayıcı motoru M1 ile eklenecek.</string>
+    <string name="focus_mode_pomodoro">Pomodoro</string>
+    <string name="focus_mode_stopwatch">Kronometre</string>
+    <string name="focus_mode_custom">Özel</string>
+
+    <string name="focus_phase_focus">Odak</string>
+    <string name="focus_phase_short_break">Kısa mola</string>
+    <string name="focus_phase_long_break">Uzun mola</string>
+    <string name="focus_phase_complete_ready">Hedefe ulaşıldı</string>
+
+    <string name="focus_action_start">Odağı başlat</string>
+    <string name="focus_action_pause">Duraklat</string>
+    <string name="focus_action_resume">Devam et</string>
+    <string name="focus_action_finish">Bitir</string>
+    <string name="focus_action_start_break">Molayı başlat</string>
+    <string name="focus_action_start_next_focus">Yeni odağı başlat</string>
+    <string name="focus_action_skip_to_focus">Odağa geç</string>
+    <string name="focus_action_review_save">İncele ve kaydet</string>
+    <string name="focus_action_discard_short">Yoksay (&lt;1 dk)</string>
+
+    <string name="focus_stat_net_focus">Net odak</string>
+    <string name="focus_stat_break">Mola</string>
+    <string name="focus_today_summary_title">Bugünkü odak</string>
+    <string name="focus_today_sessions_count">%1$s tamamlandı</string>
+    <string name="focus_today_break_summary">Mola: %1$s</string>
+    <string name="focus_cycle_progress">Döngü %1$s / %2$s</string>
+
+    <string name="focus_custom_duration_label">Oturum süresi</string>
+    <string name="focus_custom_minus_5">-5 dk</string>
+    <string name="focus_custom_plus_5">+5 dk</string>
+    <string name="focus_minutes_chip">%1$s dk</string>
+
+    <string name="focus_notif_banner_title">Sayaç bildirimlerini aç</string>
+    <string name="focus_notif_banner_body">Durum çubuğunda canlı geri sayım görün ve mola başladığında uyarı alın.</string>
+    <string name="focus_notif_banner_allow">İzin ver</string>
+    <string name="focus_notif_banner_dismiss">Şimdi değil</string>
+
+    <string name="focus_reboot_banner_title">Yeniden başlatma sonrası duraklatıldı</string>
+    <string name="focus_reboot_banner_body">Telefonun kapalı kaldığı süre hariç tutuldu. Hazır olduğunuzda devam edin veya bitirin.</string>
+
+    <string name="focus_wrapup_title">Oturum değerlendirmesi</string>
+    <string name="focus_wrapup_recorded_summary">Kaydedilen %1$s net odak · %2$s mola</string>
+    <string name="focus_wrapup_adjust_label">Odak dakikasını düzenle</string>
+    <string name="focus_wrapup_adjust_hint">Unutulan boş süreyi kırpın veya kaydetmeden önce düzeltin.</string>
+    <string name="focus_wrapup_rating_label">Odak kalitesi</string>
+    <string name="focus_wrapup_rating_cd">Odak kalitesini 5 üzerinden %1$s olarak puanla</string>
+    <string name="focus_wrapup_note_label">Kısa not (isteğe bağlı)</string>
+    <string name="focus_wrapup_note_placeholder">Neyi tamamladınız veya sonraki adım nedir?</string>
+    <string name="focus_wrapup_discard_short">Kısa oturumu yoksay (&lt;1 dk)</string>
+    <string name="focus_wrapup_save">Oturumu kaydet</string>
+
+    <string name="focus_cd_decrease_minutes">Odak dakikasını azalt</string>
+    <string name="focus_cd_increase_minutes">Odak dakikasını artır</string>
+    <string name="focus_error_start_failed">Başka bir aktif oturum zaten açık olduğu için başlatılamadı.</string>
 </resources>

@@ -1,5 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="focus_title">Focus</string>
-    <string name="focus_foundation_subtitle">Focus foundation initialized. Timer engine arrives in M1.</string>
+    <string name="focus_mode_pomodoro">Pomodoro</string>
+    <string name="focus_mode_stopwatch">Stopwatch</string>
+    <string name="focus_mode_custom">Custom</string>
+
+    <string name="focus_phase_focus">Focus</string>
+    <string name="focus_phase_short_break">Short break</string>
+    <string name="focus_phase_long_break">Long break</string>
+    <string name="focus_phase_complete_ready">Target reached</string>
+
+    <string name="focus_action_start">Start focus</string>
+    <string name="focus_action_pause">Pause</string>
+    <string name="focus_action_resume">Resume</string>
+    <string name="focus_action_finish">Finish</string>
+    <string name="focus_action_start_break">Start break</string>
+    <string name="focus_action_start_next_focus">Start focus block</string>
+    <string name="focus_action_skip_to_focus">Skip to focus</string>
+    <string name="focus_action_review_save">Review &amp; save</string>
+    <string name="focus_action_discard_short">Discard (&lt;1 min)</string>
+
+    <string name="focus_stat_net_focus">Net focus</string>
+    <string name="focus_stat_break">Break</string>
+    <string name="focus_today_summary_title">Today\'s focus</string>
+    <string name="focus_today_sessions_count">%1$s completed</string>
+    <string name="focus_today_break_summary">Break: %1$s</string>
+    <string name="focus_cycle_progress">Cycle %1$s of %2$s</string>
+
+    <string name="focus_custom_duration_label">Session length</string>
+    <string name="focus_custom_minus_5">-5m</string>
+    <string name="focus_custom_plus_5">+5m</string>
+    <string name="focus_minutes_chip">%1$s min</string>
+
+    <string name="focus_notif_banner_title">Enable timer notifications</string>
+    <string name="focus_notif_banner_body">Keep a live countdown on your status bar and get alerted when a break starts.</string>
+    <string name="focus_notif_banner_allow">Allow</string>
+    <string name="focus_notif_banner_dismiss">Not now</string>
+
+    <string name="focus_reboot_banner_title">Paused after device restart</string>
+    <string name="focus_reboot_banner_body">Time while your phone was powered off was excluded. Resume or finish when ready.</string>
+
+    <string name="focus_wrapup_title">Session wrap-up</string>
+    <string name="focus_wrapup_recorded_summary">Recorded %1$s net focus · %2$s break</string>
+    <string name="focus_wrapup_adjust_label">Adjust focus minutes</string>
+    <string name="focus_wrapup_adjust_hint">Trim forgotten idle minutes or fine-tune before saving.</string>
+    <string name="focus_wrapup_rating_label">Focus quality</string>
+    <string name="focus_wrapup_rating_cd">Rate focus quality %1$s out of 5</string>
+    <string name="focus_wrapup_note_label">Quick note (optional)</string>
+    <string name="focus_wrapup_note_placeholder">What did you finish or what comes next?</string>
+    <string name="focus_wrapup_discard_short">Discard short session (&lt;1 min)</string>
+    <string name="focus_wrapup_save">Save session</string>
+
+    <string name="focus_cd_decrease_minutes">Decrease focus minutes</string>
+    <string name="focus_cd_increase_minutes">Increase focus minutes</string>
+    <string name="focus_error_start_failed">Could not start session because another session is already active.</string>
 </resources>

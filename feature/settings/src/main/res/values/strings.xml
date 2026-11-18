@@ -5,6 +5,41 @@
     <string name="settings_theme_system">Follow Android system</string>
     <string name="settings_theme_dark">Dark (Midnight Violet)</string>
     <string name="settings_theme_light">Light (Daylight Violet)</string>
+
+    <string name="settings_rhythm_section">Focus rhythm</string>
+    <string name="settings_rollover_label">Day boundary hour</string>
+    <string name="settings_rollover_hint">Sessions before %1$s count toward the previous study day.</string>
+    <string name="settings_auto_breaks">Auto-start Pomodoro breaks</string>
+    <string name="settings_auto_next_focus">Auto-start focus after break</string>
+
+    <string name="settings_profiles_section">Focus profiles</string>
+    <string name="settings_profiles_add">New profile</string>
+    <string name="settings_profile_summary">%1$s min focus · %2$s min break</string>
+    <string name="settings_profile_edit_title">Edit profile</string>
+    <string name="settings_profile_create_title">Create focus profile</string>
+    <string name="settings_profile_name_label">Profile name</string>
+    <string name="settings_profile_color_label">Accent color</string>
+    <string name="settings_profile_color_cd">Select profile accent color</string>
+    <string name="settings_profile_default_mode">Default timer mode</string>
+    <string name="settings_profile_work_min">Focus (min)</string>
+    <string name="settings_profile_short_break">Short break (min)</string>
+    <string name="settings_profile_long_break">Long break (min)</string>
+    <string name="settings_profile_cycles">Cycles to long break</string>
+    <string name="settings_profile_error_name">Enter a profile name.</string>
+
+    <string name="settings_diagnostics_section">System readiness</string>
+    <string name="settings_notif_status_title">Timer notifications</string>
+    <string name="settings_exact_alarm_title">Exact phase-end alarms</string>
+    <string name="settings_status_granted">Ready</string>
+    <string name="settings_status_missing">Not granted</string>
+    <string name="settings_status_fallback">Inexact fallback active</string>
+    <string name="settings_action_open_system">Manage</string>
+
     <string name="settings_privacy_section">Privacy &amp; Open Source</string>
-    <string name="settings_privacy_offline_body">Offline-only in M0/M1. No network permission is requested; data stays on your device under AGPL-3.0.</string>
+    <string name="settings_privacy_offline_body">Offline-only in M1. Zero INTERNET permission is declared; all focus sessions stay on your device under AGPL-3.0.</string>
+
+    <string name="settings_cd_decrease_rollover">Decrease day boundary hour</string>
+    <string name="settings_cd_increase_rollover">Increase day boundary hour</string>
+    <string name="settings_symbol_minus" translatable="false">−</string>
+    <string name="settings_symbol_plus" translatable="false">+</string>
 </resources>
