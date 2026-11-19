@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="zen_rule_name">Pekmen Focus</string>
+    <string name="zen_condition_active_summary">Focus active (%1$s)</string>
+    <string name="zen_condition_inactive_summary">Focus session paused or ended</string>
+
+    <string name="shortcut_study_pomodoro_short">Study Pomodoro</string>
+    <string name="shortcut_study_pomodoro_long">Start Study Pomodoro session</string>
+    <string name="shortcut_work_focus_short">Work Focus</string>
+    <string name="shortcut_work_focus_long">Start Work focus session</string>
+    <string name="shortcut_sleep_custom_short">Sleep Custom</string>
+    <string name="shortcut_sleep_custom_long">Start Sleep custom session</string>
+    <string name="shortcut_toggle_focus_short">Toggle Focus</string>
+    <string name="shortcut_toggle_focus_long">Pause or resume active focus session</string>
+
+    <string name="tile_focus_label">Pekmen Focus</string>
+    <string name="tile_focus_subtitle_idle">Tap to open</string>
+    <string name="tile_focus_subtitle_running">%1$s · Tap to pause</string>
+    <string name="tile_focus_subtitle_paused">Paused · Tap to resume</string>
+    <string name="tile_focus_subtitle_awaiting">Phase complete · Tap for next</string>
+
+    <string name="routine_guide_step_trigger">1. In Samsung Modes &amp; Routines, add an If condition: Notification received from Pekmen One containing [PekmenFocus:STUDY:RUNNING].</string>
+    <string name="routine_guide_step_effects">2. Set Then actions such as Do Not Disturb, Grayscale, or App restrictions while focusing.</string>
+    <string name="routine_guide_step_shortcut">3. To launch Pekmen One from a routine, choose Apps &gt; Open app or Do app action and pick a Pekmen One shortcut.</string>
+</resources>

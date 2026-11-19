@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="zen_rule_name">Pekmen Odak</string>
+    <string name="zen_condition_active_summary">Odak etkin (%1$s)</string>
+    <string name="zen_condition_inactive_summary">Odak oturumu duraklatıldı veya bitti</string>
+
+    <string name="shortcut_study_pomodoro_short">Çalışma Pomodoro</string>
+    <string name="shortcut_study_pomodoro_long">Çalışma Pomodoro oturumu başlat</string>
+    <string name="shortcut_work_focus_short">İş Odağı</string>
+    <string name="shortcut_work_focus_long">İş odak oturumu başlat</string>
+    <string name="shortcut_sleep_custom_short">Uyku Özel</string>
+    <string name="shortcut_sleep_custom_long">Uyku özel oturumu başlat</string>
+    <string name="shortcut_toggle_focus_short">Odağı Değiştir</string>
+    <string name="shortcut_toggle_focus_long">Etkin odak oturumunu duraklat veya sürdür</string>
+
+    <string name="tile_focus_label">Pekmen Odak</string>
+    <string name="tile_focus_subtitle_idle">Açmak için dokunun</string>
+    <string name="tile_focus_subtitle_running">%1$s · Duraklatmak için dokunun</string>
+    <string name="tile_focus_subtitle_paused">Duraklatıldı · Devam için dokunun</string>
+    <string name="tile_focus_subtitle_awaiting">Aşama bitti · Sonraki için dokunun</string>
+
+    <string name="routine_guide_step_trigger">1. Samsung Modlar ve Rutinler uygulamasında Eğer koşulu ekleyin: Pekmen One bildiriminde [PekmenFocus:STUDY:RUNNING] anahtar sözcüğü.</string>
+    <string name="routine_guide_step_effects">2. O zaman eylemi olarak odak boyunca Rahatsız Etmeyin, Gri Tonlama veya Uygulama kısıtlaması seçin.</string>
+    <string name="routine_guide_step_shortcut">3. Bir rutinden Pekmen One başlatmak için Uygulamalar &gt; Uygulama aç veya Uygulama eylemi seçip bir Pekmen One kısayolu atayın.</string>
+</resources>

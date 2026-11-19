@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+        Dynamic app shortcuts (Study Pomodoro, Work Focus, Sleep Custom, Toggle Focus) are
+        published via AppShortcutsPublisher + ShortcutManagerCompat at runtime so explicit
+        target packages resolve across both debug (.debug suffix) and release applicationIds.
+    -->
+</shortcuts>
