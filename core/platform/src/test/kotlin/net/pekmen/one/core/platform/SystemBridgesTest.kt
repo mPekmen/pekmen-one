@@ -107,7 +107,7 @@ class SystemBridgesTest {
         val thirdPartyRule = AutomaticZenRule(
             "User Bedtime",
             null,
-            null,
+            ComponentName(app, FakeLauncherActivity::class.java),
             thirdPartyUri,
             ZenPolicy.Builder().allowAlarms(true).build(),
             NotificationManager.INTERRUPTION_FILTER_PRIORITY,

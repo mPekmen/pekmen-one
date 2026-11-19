@@ -25,7 +25,7 @@ class FocusZenRuleManager(
     context: Context,
     private val gateway: FocusZenRuleGateway = AndroidFocusZenRuleGateway(context),
     private val idStore: ZenRuleIdStore = SharedPrefsZenRuleIdStore(context),
-    private val configurationActivity: ComponentName? = null,
+    private val configurationActivity: ComponentName = defaultConfigurationActivity(context),
     private val sdkIntProvider: () -> Int = { Build.VERSION.SDK_INT },
     private val ruleNameProvider: () -> String = {
         context.applicationContext.getString(R.string.zen_rule_name)
@@ -188,8 +188,8 @@ class FocusZenRuleManager(
             .setZenPolicy(policy)
             .setDeviceEffects(deviceEffects)
             .setIconResId(R.drawable.ic_stat_focus)
+            .setConfigurationActivity(configurationActivity)
             .setEnabled(true)
-        configurationActivity?.let { builder.setConfigurationActivity(it) }
         return builder.build()
     }
 
@@ -211,5 +211,14 @@ class FocusZenRuleManager(
 
     companion object {
         val CONDITION_URI: Uri = Uri.parse("pekmen://focus/zen-rule")
+        private const val DEFAULT_CONFIG_ACTIVITY_CLASS = "net.pekmen.one.MainActivity"
+
+        fun defaultConfigurationActivity(context: Context): ComponentName {
+            val appContext = context.applicationContext
+            val launchComponent = appContext.packageManager
+                .getLaunchIntentForPackage(appContext.packageName)
+                ?.component
+            return launchComponent ?: ComponentName(appContext, DEFAULT_CONFIG_ACTIVITY_CLASS)
+        }
     }
 }
