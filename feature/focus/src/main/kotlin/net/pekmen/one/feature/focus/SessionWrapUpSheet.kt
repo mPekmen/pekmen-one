@@ -1,5 +1,6 @@
 package net.pekmen.one.feature.focus
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,8 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -41,6 +46,10 @@ import net.pekmen.one.core.designsystem.format.PekmenFormatters
 import net.pekmen.one.core.designsystem.icon.PekmenIcons
 import net.pekmen.one.core.model.ActiveSessionSnapshot
 import net.pekmen.one.core.model.FocusTimeMath
+import net.pekmen.one.core.model.LearningBook
+import net.pekmen.one.core.model.LearningSubject
+import net.pekmen.one.core.model.LearningTopic
+import net.pekmen.one.core.model.TopicStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +57,18 @@ fun SessionWrapUpSheet(
     snapshot: ActiveSessionSnapshot,
     onDismiss: () -> Unit,
     onSave: (trimmedFocusSeconds: Long?, rating: Int?, note: String?) -> Unit,
-    onDiscardShort: () -> Unit
+    onDiscardShort: () -> Unit,
+    linkedSubject: LearningSubject? = null,
+    linkedBook: LearningBook? = null,
+    linkedTopic: LearningTopic? = null,
+    isSaving: Boolean = false,
+    onSaveWithLearning: ((
+        trimmedFocusSeconds: Long?,
+        rating: Int?,
+        note: String?,
+        bookEndPage: Int?,
+        markTopicMastered: Boolean
+    ) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val recordedFocusSec = snapshot.session.actualFocusSec
@@ -64,6 +84,12 @@ fun SessionWrapUpSheet(
     var noteText by remember(snapshot.session.id) {
         mutableStateOf(snapshot.session.reflectionNote.orEmpty())
     }
+    var bookEndPageText by remember(snapshot.session.id, linkedBook?.id) {
+        mutableStateOf((snapshot.session.bookEndPage ?: linkedBook?.currentPage)?.toString().orEmpty())
+    }
+    var markTopicMastered by remember(snapshot.session.id, linkedTopic?.id) {
+        mutableStateOf(false)
+    }
 
     val adjustedMinutes = adjustedMinutesText.toIntOrNull()?.coerceIn(0, 960) ?: initialMinutes
     val isModified = adjustedMinutes != initialMinutes
@@ -78,6 +104,7 @@ fun SessionWrapUpSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -96,6 +123,60 @@ fun SessionWrapUpSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            linkedSubject?.let { subject ->
+                AssistChip(
+                    onClick = {},
+                    label = { Text(text = subject.title) }
+                )
+            }
+
+            if (linkedBook != null) {
+                OutlinedTextField(
+                    value = bookEndPageText,
+                    onValueChange = { input ->
+                        if (input.length <= 5 && input.all { it.isDigit() }) {
+                            bookEndPageText = input
+                        }
+                    },
+                    label = {
+                        Text(
+                            text = stringResource(
+                                R.string.focus_wrapup_book_end_page_label,
+                                PekmenFormatters.formatInteger(linkedBook.currentPage),
+                                PekmenFormatters.formatInteger(linkedBook.totalPages)
+                            )
+                        )
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (linkedTopic != null && linkedTopic.status != TopicStatus.MASTERED) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clickable { markTopicMastered = !markTopicMastered },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = markTopicMastered,
+                        onCheckedChange = { markTopicMastered = it }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.focus_wrapup_mark_topic_mastered,
+                            linkedTopic.title
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
 
             Text(
                 text = stringResource(R.string.focus_wrapup_adjust_label),
@@ -186,6 +267,7 @@ fun SessionWrapUpSheet(
             if (isUnderShortThreshold) {
                 TextButton(
                     onClick = onDiscardShort,
+                    enabled = !isSaving,
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 48.dp)
@@ -205,6 +287,7 @@ fun SessionWrapUpSheet(
             ) {
                 OutlinedButton(
                     onClick = onDismiss,
+                    enabled = !isSaving,
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp)
@@ -214,8 +297,20 @@ fun SessionWrapUpSheet(
                 Button(
                     onClick = {
                         val trimmedSec = if (isModified) adjustedMinutes * 60L else null
-                        onSave(trimmedSec, selectedRating, noteText)
+                        val parsedPage = if (linkedBook != null) bookEndPageText.toIntOrNull() else null
+                        if (onSaveWithLearning != null) {
+                            onSaveWithLearning(
+                                trimmedSec,
+                                selectedRating,
+                                noteText,
+                                parsedPage,
+                                markTopicMastered
+                            )
+                        } else {
+                            onSave(trimmedSec, selectedRating, noteText)
+                        }
                     },
+                    enabled = !isSaving,
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(min = 48.dp)

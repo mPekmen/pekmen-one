@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_title">Öğrenme</string>
+    <string name="learning_add_subject">Yeni ders</string>
+    <string name="learning_empty_title">Çalıştığınız konuları düzenleyin</string>
+    <string name="learning_empty_body">Haftalık odak hedefiyle bir ders ekleyin; kitapları ve konuları odak oturumlarınızla takip edin.</string>
+
+    <string name="learning_weekly_goal_progress">%1$s / %2$s dk</string>
+    <string name="learning_weekly_sessions_count">%1$s oturum</string>
+    <string name="learning_focus_on_subject">Odaklan</string>
+
+    <string name="learning_books_header">Kitaplar</string>
+    <string name="learning_add_book">Kitap ekle</string>
+    <string name="learning_no_books">Henüz kitap eklenmedi</string>
+    <string name="learning_book_pages_progress">Sayfa %1$s / %2$s</string>
+    <string name="learning_book_pages_completed">Sayfa %1$s / %2$s · Tamamlandı</string>
+    <string name="learning_book_completed_badge">Tamamlandı</string>
+
+    <string name="learning_topics_header">Konular</string>
+    <string name="learning_add_topic">Konu ekle</string>
+    <string name="learning_no_topics">Henüz konu eklenmedi</string>
+    <string name="learning_topic_status_todo">Yapılacak</string>
+    <string name="learning_topic_status_in_progress">Çalışılıyor</string>
+    <string name="learning_topic_status_mastered">Uzmanlaşıldı</string>
+
+    <string name="learning_subject_create_title">Yeni ders</string>
+    <string name="learning_subject_edit_title">Dersi düzenle</string>
+    <string name="learning_subject_title_label">Ders adı</string>
+    <string name="learning_subject_goal_label">Haftalık hedef (dakika)</string>
+    <string name="learning_subject_color_label">Vurgu rengi</string>
+
+    <string name="learning_book_create_title">Kitap ekle</string>
+    <string name="learning_book_edit_title">Kitabı düzenle</string>
+    <string name="learning_book_title_label">Kitap adı</string>
+    <string name="learning_book_author_label">Yazar (isteğe bağlı)</string>
+    <string name="learning_book_total_pages_label">Toplam sayfa</string>
+    <string name="learning_book_current_page_label">Güncel sayfa</string>
+
+    <string name="learning_topic_create_title">Konu ekle</string>
+    <string name="learning_topic_edit_title">Konuyu düzenle</string>
+    <string name="learning_topic_title_label">Konu adı</string>
+    <string name="learning_topic_book_label">Bağlı kitap (isteğe bağlı)</string>
+    <string name="learning_topic_book_none">Kitap yok</string>
+    <string name="learning_topic_status_label">Durum</string>
+
+    <string name="learning_delete_confirm">Silmek için tekrar dokunun</string>
+    <string name="learning_error_invalid_input">Lütfen geçerli bir başlık ve negatif olmayan sayılar girin.</string>
+
+    <string name="learning_cd_edit_subject">%1$s dersini düzenle</string>
+    <string name="learning_cd_edit_book">%1$s kitabını düzenle</string>
+    <string name="learning_cd_edit_topic">%1$s konusunu düzenle</string>
+    <string name="learning_cd_prev_page">Önceki sayfa</string>
+    <string name="learning_cd_next_page">Sonraki sayfa</string>
+    <string name="learning_cd_select_color">Ders rengini seç</string>
+</resources>

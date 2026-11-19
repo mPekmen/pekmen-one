@@ -32,6 +32,13 @@
     <string name="focus_custom_plus_5">+5 dk</string>
     <string name="focus_minutes_chip">%1$s dk</string>
 
+    <string name="focus_link_subject_label">Çalışma dersi (isteğe bağlı)</string>
+    <string name="focus_link_book_label">Kitap</string>
+    <string name="focus_link_topic_label">Konu</string>
+    <string name="focus_link_none">Yok</string>
+    <string name="focus_link_book_page_chip">%1$s (s. %2$s/%3$s)</string>
+    <string name="focus_link_active_prefix">Çalışılan: %1$s</string>
+
     <string name="focus_notif_banner_title">Sayaç bildirimlerini aç</string>
     <string name="focus_notif_banner_body">Durum çubuğunda canlı geri sayım görün ve mola başladığında uyarı alın.</string>
     <string name="focus_notif_banner_allow">İzin ver</string>
@@ -44,6 +51,8 @@
     <string name="focus_wrapup_recorded_summary">Kaydedilen %1$s net odak · %2$s mola</string>
     <string name="focus_wrapup_adjust_label">Odak dakikasını düzenle</string>
     <string name="focus_wrapup_adjust_hint">Unutulan boş süreyi kırpın veya kaydetmeden önce düzeltin.</string>
+    <string name="focus_wrapup_book_end_page_label">Ulaşılan kitap sayfası (önceki: %1$s / %2$s)</string>
+    <string name="focus_wrapup_mark_topic_mastered">%1$s konusunu uzmanlaşıldı işaretle</string>
     <string name="focus_wrapup_rating_label">Odak kalitesi</string>
     <string name="focus_wrapup_rating_cd">Odak kalitesini 5 üzerinden %1$s olarak puanla</string>
     <string name="focus_wrapup_note_label">Kısa not (isteğe bağlı)</string>

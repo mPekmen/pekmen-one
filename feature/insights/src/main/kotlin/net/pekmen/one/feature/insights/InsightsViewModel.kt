@@ -8,17 +8,20 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.pekmen.one.core.data.CompletedSessionItem
 import net.pekmen.one.core.data.FocusHistoryRepository
 import net.pekmen.one.core.data.FocusProfileRepository
+import net.pekmen.one.core.data.LearningRepository
 import net.pekmen.one.core.data.RetroactiveSessionRequest
 import net.pekmen.one.core.data.SystemDiagnosticsRepository
 import net.pekmen.one.core.data.UserPreferencesRepository
 import net.pekmen.one.core.model.DailyFocusSummary
 import net.pekmen.one.core.model.EffectiveDayCalculator
 import net.pekmen.one.core.model.FocusProfile
+import net.pekmen.one.core.model.SubjectWeeklyProgress
 import net.pekmen.one.core.model.WeeklyFocusSummary
 import java.time.Instant
 import java.time.LocalDate
@@ -39,6 +42,7 @@ data class InsightsUiState(
     val profiles: List<FocusProfile> = emptyList(),
     val todaySummary: DailyFocusSummary? = null,
     val weeklySummary: WeeklyFocusSummary? = null,
+    val subjectWeeklyProgress: List<SubjectWeeklyProgress> = emptyList(),
     val recentSessions: List<CompletedSessionItem> = emptyList(),
     val editingSession: CompletedSessionItem? = null,
     val isManualSheetOpen: Boolean = false,
@@ -50,7 +54,8 @@ class InsightsViewModel(
     private val historyRepository: FocusHistoryRepository,
     profileRepository: FocusProfileRepository,
     preferencesRepository: UserPreferencesRepository,
-    private val diagnosticsRepository: SystemDiagnosticsRepository
+    private val diagnosticsRepository: SystemDiagnosticsRepository,
+    private val learningRepository: LearningRepository? = null
 ) : ViewModel() {
 
     private val editingSession = MutableStateFlow<CompletedSessionItem?>(null)
@@ -65,16 +70,19 @@ class InsightsViewModel(
         )
         combine(
             historyRepository.observeDailySummary(effectiveToday),
-            historyRepository.observeWeeklySummary(effectiveToday)
-        ) { daily, weekly -> daily to weekly }
+            historyRepository.observeWeeklySummary(effectiveToday),
+            learningRepository?.observeWeeklySubjectProgress(effectiveToday) ?: flowOf(emptyList())
+        ) { daily, weekly, subjectProgress ->
+            Triple(daily, weekly, subjectProgress)
+        }
     }
 
     private val dataFlow = combine(
         profileRepository.profiles,
         effectiveTodayFlow,
         historyRepository.observeRecentCompletedSessions(60)
-    ) { profiles, (daily, weekly), recent ->
-        Triple(profiles, daily to weekly, recent)
+    ) { profiles, summaries, recent ->
+        Triple(profiles, summaries, recent)
     }
 
     val uiState: StateFlow<InsightsUiState> = combine(
@@ -87,6 +95,7 @@ class InsightsViewModel(
             profiles = profiles,
             todaySummary = summaries.first,
             weeklySummary = summaries.second,
+            subjectWeeklyProgress = summaries.third,
             recentSessions = recent,
             editingSession = editing,
             isManualSheetOpen = manualOpen,

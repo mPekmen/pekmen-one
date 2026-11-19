@@ -6,6 +6,7 @@ import net.pekmen.one.core.model.DailyFocusSummary
 import net.pekmen.one.core.model.FocusProfile
 import net.pekmen.one.core.model.FocusSession
 import net.pekmen.one.core.model.FocusSessionMode
+import net.pekmen.one.core.model.SessionLearningLink
 import net.pekmen.one.core.model.WeeklyFocusSummary
 import java.time.LocalDate
 
@@ -20,7 +21,10 @@ data class RetroactiveSessionRequest(
     val focusMinutes: Int,
     val breakMinutes: Int,
     val rating: Int?,
-    val note: String?
+    val note: String?,
+    val subjectId: String? = null,
+    val bookId: String? = null,
+    val topicId: String? = null
 )
 
 data class SaveProfileRequest(
@@ -46,7 +50,8 @@ interface FocusSessionRepository {
     suspend fun startSession(
         profileId: String,
         mode: FocusSessionMode,
-        customDurationMinutes: Int? = null
+        customDurationMinutes: Int? = null,
+        link: SessionLearningLink? = null
     ): Result<FocusSession>
 
     suspend fun pauseActiveSession()
@@ -58,7 +63,9 @@ interface FocusSessionRepository {
     suspend fun completeActiveSession(
         trimmedFocusSeconds: Long? = null,
         rating: Int? = null,
-        note: String? = null
+        note: String? = null,
+        bookEndPage: Int? = null,
+        markTopicMastered: Boolean = false
     ): FocusSession?
 
     suspend fun discardActiveSession()

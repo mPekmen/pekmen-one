@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -57,6 +56,9 @@ import net.pekmen.one.core.model.FocusProfile
 import net.pekmen.one.core.model.FocusSessionMode
 import net.pekmen.one.core.model.FocusSessionStatus
 import net.pekmen.one.core.model.FocusTimeMath
+import net.pekmen.one.core.model.LearningBook
+import net.pekmen.one.core.model.LearningSubject
+import net.pekmen.one.core.model.LearningTopic
 
 @Composable
 fun FocusRoute(
@@ -82,7 +84,7 @@ fun FocusRoute(
         onSkipBreakToFocus = viewModel::skipBreakToFocus,
         onOpenWrapUp = viewModel::openWrapUp,
         onDismissWrapUp = viewModel::dismissWrapUp,
-        onSaveWrapUp = viewModel::saveWrapUp,
+        onSaveWrapUp = { trimmed, rating, note -> viewModel.saveWrapUp(trimmed, rating, note) },
         onDiscardShort = viewModel::discardShortSession,
         onRequestNotifications = {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -90,7 +92,11 @@ fun FocusRoute(
             }
         },
         onDismissNotificationBanner = viewModel::dismissNotificationBanner,
-        modifier = modifier
+        modifier = modifier,
+        onSelectSubject = viewModel::selectSubject,
+        onSelectBook = viewModel::selectBook,
+        onSelectTopic = viewModel::selectTopic,
+        onSaveWrapUpWithLearning = viewModel::saveWrapUp
     )
 }
 
@@ -111,7 +117,11 @@ fun FocusScreen(
     onDiscardShort: () -> Unit,
     onRequestNotifications: () -> Unit,
     onDismissNotificationBanner: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSelectSubject: (String?) -> Unit = {},
+    onSelectBook: (String?) -> Unit = {},
+    onSelectTopic: (String?) -> Unit = {},
+    onSaveWrapUpWithLearning: ((Long?, Int?, String?, Int?, Boolean) -> Unit)? = null
 ) {
     val active = state.activeSnapshot
     val profileAccent = state.selectedProfile?.let { Color(it.colorHex) } ?: MaterialTheme.colorScheme.primary
@@ -165,6 +175,25 @@ fun FocusScreen(
                     onSelectMode = onSelectMode,
                     onSetCustomMinutes = onSetCustomMinutes
                 )
+                if (state.subjects.isNotEmpty()) {
+                    LearningLinkSelectorSection(
+                        subjects = state.subjects,
+                        books = state.books,
+                        topics = state.topics,
+                        selectedSubjectId = state.selectedSubjectId,
+                        selectedBookId = state.selectedBookId,
+                        selectedTopicId = state.selectedTopicId,
+                        onSelectSubject = onSelectSubject,
+                        onSelectBook = onSelectBook,
+                        onSelectTopic = onSelectTopic
+                    )
+                }
+            } else {
+                ActiveLearningLinkChip(
+                    subject = state.activeLinkedSubject,
+                    book = state.activeLinkedBook,
+                    topic = state.activeLinkedTopic
+                )
             }
 
             FocusRingDisplaySection(
@@ -199,8 +228,161 @@ fun FocusScreen(
             snapshot = wrapUp,
             onDismiss = onDismissWrapUp,
             onSave = onSaveWrapUp,
-            onDiscardShort = onDiscardShort
+            onDiscardShort = onDiscardShort,
+            linkedSubject = state.activeLinkedSubject,
+            linkedBook = state.activeLinkedBook,
+            linkedTopic = state.activeLinkedTopic,
+            isSaving = state.isSavingWrapUp,
+            onSaveWithLearning = onSaveWrapUpWithLearning
         )
+    }
+}
+
+@Composable
+private fun LearningLinkSelectorSection(
+    subjects: List<LearningSubject>,
+    books: List<LearningBook>,
+    topics: List<LearningTopic>,
+    selectedSubjectId: String?,
+    selectedBookId: String?,
+    selectedTopicId: String?,
+    onSelectSubject: (String?) -> Unit,
+    onSelectBook: (String?) -> Unit,
+    onSelectTopic: (String?) -> Unit
+) {
+    val subjectBooks = books.filter { selectedSubjectId != null && it.subjectId == selectedSubjectId }
+    val subjectTopics = topics.filter { topic ->
+        selectedSubjectId != null &&
+            topic.subjectId == selectedSubjectId &&
+            (selectedBookId == null || topic.bookId == null || topic.bookId == selectedBookId)
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.focus_link_subject_label),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            item {
+                FilterChip(
+                    selected = selectedSubjectId == null,
+                    onClick = { onSelectSubject(null) },
+                    label = { Text(text = stringResource(R.string.focus_link_none)) },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                )
+            }
+            items(subjects, key = { it.id }) { subject ->
+                FilterChip(
+                    selected = selectedSubjectId == subject.id,
+                    onClick = { onSelectSubject(subject.id) },
+                    leadingIcon = {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(Color(subject.colorHex), CircleShape)
+                        )
+                    },
+                    label = { Text(text = subject.title) },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                )
+            }
+        }
+
+        if (subjectBooks.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.focus_link_book_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    FilterChip(
+                        selected = selectedBookId == null,
+                        onClick = { onSelectBook(null) },
+                        label = { Text(text = stringResource(R.string.focus_link_none)) },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    )
+                }
+                items(subjectBooks, key = { it.id }) { book ->
+                    FilterChip(
+                        selected = selectedBookId == book.id,
+                        onClick = { onSelectBook(book.id) },
+                        label = {
+                            Text(
+                                text = stringResource(
+                                    R.string.focus_link_book_page_chip,
+                                    book.title,
+                                    PekmenFormatters.formatInteger(book.currentPage),
+                                    PekmenFormatters.formatInteger(book.totalPages)
+                                )
+                            )
+                        },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    )
+                }
+            }
+        }
+
+        if (subjectTopics.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.focus_link_topic_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    FilterChip(
+                        selected = selectedTopicId == null,
+                        onClick = { onSelectTopic(null) },
+                        label = { Text(text = stringResource(R.string.focus_link_none)) },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    )
+                }
+                items(subjectTopics, key = { it.id }) { topic ->
+                    FilterChip(
+                        selected = selectedTopicId == topic.id,
+                        onClick = { onSelectTopic(topic.id) },
+                        label = { Text(text = topic.title) },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActiveLearningLinkChip(
+    subject: LearningSubject?,
+    book: LearningBook?,
+    topic: LearningTopic?
+) {
+    val parts = listOfNotNull(subject?.title, book?.title, topic?.title)
+    if (parts.isEmpty()) return
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(PekmenIcons.Book),
+                contentDescription = null,
+                tint = subject?.let { Color(it.colorHex) } ?: MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = stringResource(R.string.focus_link_active_prefix, parts.joinToString(" · ")),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 

@@ -1,8 +1,11 @@
 package net.pekmen.one.core.data
 
 import androidx.room.withTransaction
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -20,13 +23,17 @@ import net.pekmen.one.core.model.FocusSession
 import net.pekmen.one.core.model.FocusSessionMode
 import net.pekmen.one.core.model.FocusSessionStatus
 import net.pekmen.one.core.model.FocusTimeMath
+import net.pekmen.one.core.model.SessionLearningLink
 import net.pekmen.one.core.model.TimeProvider
+import net.pekmen.one.core.model.TopicStatus
 import net.pekmen.one.core.model.UserPreferences
 import net.pekmen.one.core.model.UuidV7
 import net.pekmen.one.core.platform.FocusAlarmGateway
 import net.pekmen.one.core.platform.FocusNotificationGateway
 import net.pekmen.one.core.platform.ProfileNameProvider
+import java.time.LocalDate
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class FocusSessionRepositoryImpl(
     private val database: PekmenDatabase,
     private val profileRepository: FocusProfileRepository,
@@ -38,16 +45,27 @@ class FocusSessionRepositoryImpl(
 ) : FocusSessionRepository {
 
     private val sessionDao = database.focusSessionDao()
+    private val accountSessionDao = database.accountSessionDao()
     private val profileDao = database.focusProfileDao()
+    private val learningDao = database.learningDao()
+    private val learningTopicDao = database.learningTopicDao()
+    private val outboxDao = database.syncOutboxDao()
     private val stateMutex = Mutex()
 
-    override val activeSession: Flow<ActiveSessionSnapshot?> = sessionDao.observeActiveSession()
-        .map { it?.toActiveSnapshot() }
+    private val ownerUserIdFlow = preferencesDataStore.preferences
+        .map { LearningOutboxEncoder.normalizeOwner(it.activeOwnerUserId) }
+        .distinctUntilChanged()
+
+    override val activeSession: Flow<ActiveSessionSnapshot?> = ownerUserIdFlow.flatMapLatest { ownerUserId ->
+        accountSessionDao.observeActiveSessionByOwner(ownerUserId)
+            .map { it?.toActiveSnapshot() }
+    }
 
     override suspend fun startSession(
         profileId: String,
         mode: FocusSessionMode,
-        customDurationMinutes: Int?
+        customDurationMinutes: Int?,
+        link: SessionLearningLink?
     ): Result<FocusSession> = stateMutex.withLock {
         runCatching {
             profileRepository.ensureSeeded()
@@ -63,46 +81,17 @@ class FocusSessionRepositoryImpl(
 
             var created: Triple<FocusSessionEntity, FocusProfileEntity, FocusSessionSegmentEntity>? = null
             database.withTransaction {
-                check(sessionDao.countActiveSessions() == 0) { "An active focus session already exists" }
-                val profile = requireNotNull(profileDao.getById(profileId)) { "Unknown profile: $profileId" }
-                val plannedSec = when (mode) {
-                    FocusSessionMode.POMODORO -> profile.workMinutes * 60L
-                    FocusSessionMode.CUSTOM -> {
-                        val customMin = customDurationMinutes ?: prefs.defaultCustomMinutes
-                        customMin.coerceIn(1, 480) * 60L
-                    }
-                    FocusSessionMode.STOPWATCH -> null
-                }
-                val sessionId = UuidV7.generate(nowWall)
-                val sessionEntity = FocusSessionEntity(
-                    id = sessionId,
-                    profileId = profile.id,
-                    sessionMode = mode.name,
-                    status = FocusSessionStatus.RUNNING.name,
-                    currentPhase = FocusPhase.FOCUS.name,
-                    completedFocusCycles = 0,
-                    startedAtWallMs = nowWall,
-                    effectiveDayDate = effectiveDay.toString(),
-                    plannedFocusSec = plannedSec,
-                    actualFocusSec = 0L,
-                    actualBreakSec = 0L,
-                    pauseCount = 0,
-                    sync = SyncMetadataEntity(createdAtMs = nowWall, clientUpdatedAtMs = nowWall)
+                created = insertInitialSession(
+                    profileId = profileId,
+                    mode = mode,
+                    customDurationMinutes = customDurationMinutes,
+                    link = link,
+                    prefs = prefs,
+                    effectiveDay = effectiveDay,
+                    nowWall = nowWall,
+                    nowElapsed = nowElapsed,
+                    bootCount = bootCount
                 )
-                val segmentEntity = FocusSessionSegmentEntity(
-                    id = UuidV7.generate(nowWall + 1L),
-                    sessionId = sessionId,
-                    segmentIndex = 0,
-                    phase = FocusPhase.FOCUS.name,
-                    startedAtWallMs = nowWall,
-                    startedAtElapsedMs = nowElapsed,
-                    bootCount = bootCount,
-                    lastCheckpointedDurationMs = 0L,
-                    plannedDurationMs = plannedSec?.times(1000L)
-                )
-                sessionDao.insertSession(sessionEntity)
-                sessionDao.insertSegment(segmentEntity)
-                created = Triple(sessionEntity, profile, segmentEntity)
             }
 
             val (session, profile, segment) = requireNotNull(created)
@@ -251,13 +240,20 @@ class FocusSessionRepositoryImpl(
 
     override suspend fun freezeActiveSessionForWrapUp(): ActiveSessionSnapshot? {
         pauseActiveSession()
-        return sessionDao.getActiveSessionOnce()?.toActiveSnapshot()
+        val ownerUserId = LearningOutboxEncoder.normalizeOwner(
+            preferencesDataStore.preferences.first().activeOwnerUserId
+        )
+        return sessionDao.getActiveSessionOnce()
+            ?.takeIf { it.session.sync.ownerUserId == ownerUserId }
+            ?.toActiveSnapshot()
     }
 
     override suspend fun completeActiveSession(
         trimmedFocusSeconds: Long?,
         rating: Int?,
-        note: String?
+        note: String?,
+        bookEndPage: Int?,
+        markTopicMastered: Boolean
     ): FocusSession? = stateMutex.withLock {
         val nowWall = timeProvider.wallTimeMs()
         val nowElapsed = timeProvider.elapsedRealtimeMs()
@@ -265,34 +261,50 @@ class FocusSessionRepositoryImpl(
         var completed: FocusSessionEntity? = null
 
         database.withTransaction {
-            val active = sessionDao.getActiveSessionOnce() ?: return@withTransaction
-            val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null }
-            val updatedSegments = closeOpenSegmentIfPresent(active, openSeg, nowWall, nowElapsed, bootCount)
-            val totals = FocusSessionMathHelper.computeSegmentTotalsMs(updatedSegments)
-            val computedFocusSec = totals.first / 1000L
-            val computedBreakSec = totals.second / 1000L
-            val finalFocusSec = trimmedFocusSeconds?.coerceIn(0L, MAX_SESSION_SECONDS) ?: computedFocusSec
-            val adjusted = active.session.wasManuallyAdjusted ||
-                (trimmedFocusSeconds != null && finalFocusSec != computedFocusSec)
+            val active = sessionDao.getActiveSessionOnce()
+            if (active != null && isCompletableStatus(active.session.status)) {
+                val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null }
+                val updatedSegments = closeOpenSegmentIfPresent(active, openSeg, nowWall, nowElapsed, bootCount)
+                val totals = FocusSessionMathHelper.computeSegmentTotalsMs(updatedSegments)
+                val computedFocusSec = totals.first / 1000L
+                val computedBreakSec = totals.second / 1000L
+                val finalFocusSec = trimmedFocusSeconds?.coerceIn(0L, MAX_SESSION_SECONDS) ?: computedFocusSec
+                val adjusted = active.session.wasManuallyAdjusted ||
+                    (trimmedFocusSeconds != null && finalFocusSec != computedFocusSec)
 
-            val updatedSession = active.session.copy(
-                status = FocusSessionStatus.COMPLETED.name,
-                awaitingNextPhase = null,
-                endedAtWallMs = nowWall,
-                actualFocusSec = finalFocusSec,
-                actualBreakSec = computedBreakSec,
-                wasManuallyAdjusted = adjusted,
-                interruptedByReboot = false,
-                focusRating = rating?.coerceIn(1, 5) ?: active.session.focusRating,
-                reflectionNote = note?.trim()?.take(MAX_NOTE_LENGTH)?.ifEmpty { null }
-                    ?: active.session.reflectionNote,
-                sync = active.session.sync.copy(
-                    clientUpdatedAtMs = nowWall,
-                    version = active.session.sync.version + 1L
+                val resolvedEndPage = updateLinkedBookOnComplete(active.session, bookEndPage, nowWall)
+                updateLinkedTopicOnComplete(active.session, markTopicMastered, nowWall)
+
+                val ownerId = active.session.sync.ownerUserId
+                val updatedSession = active.session.copy(
+                    status = FocusSessionStatus.COMPLETED.name,
+                    awaitingNextPhase = null,
+                    endedAtWallMs = nowWall,
+                    bookEndPage = resolvedEndPage ?: active.session.bookEndPage,
+                    actualFocusSec = finalFocusSec,
+                    actualBreakSec = computedBreakSec,
+                    wasManuallyAdjusted = adjusted,
+                    interruptedByReboot = false,
+                    focusRating = rating?.coerceIn(1, 5) ?: active.session.focusRating,
+                    reflectionNote = note?.trim()?.take(MAX_NOTE_LENGTH)?.ifEmpty { null }
+                        ?: active.session.reflectionNote,
+                    sync = active.session.sync.copy(
+                        clientUpdatedAtMs = nowWall,
+                        version = active.session.sync.version + 1L,
+                        syncStatus = LearningOutboxEncoder.syncStatusFor(ownerId)
+                    )
                 )
-            )
-            sessionDao.updateSession(updatedSession)
-            completed = updatedSession
+                sessionDao.updateSession(updatedSession)
+                outboxDao.enqueue(
+                    LearningOutboxEncoder.buildSessionMutation(
+                        entity = updatedSession,
+                        opType = OP_UPSERT,
+                        baseVersion = active.session.sync.version,
+                        nowMs = nowWall
+                    )
+                )
+                completed = updatedSession
+            }
         }
 
         if (completed != null) {
@@ -395,6 +407,156 @@ class FocusSessionRepositoryImpl(
 
             dispatchEffect(effect, nowWall, nowElapsed)
         }
+    }
+
+    private suspend fun insertInitialSession(
+        profileId: String,
+        mode: FocusSessionMode,
+        customDurationMinutes: Int?,
+        link: SessionLearningLink?,
+        prefs: UserPreferences,
+        effectiveDay: LocalDate,
+        nowWall: Long,
+        nowElapsed: Long,
+        bootCount: Int
+    ): Triple<FocusSessionEntity, FocusProfileEntity, FocusSessionSegmentEntity> {
+        check(sessionDao.countActiveSessions() == 0) { "An active focus session already exists" }
+        val ownerUserId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
+        val profile = requireNotNull(profileDao.getById(profileId)) { "Unknown profile: $profileId" }
+        val linkedBook = link?.bookId?.let { learningDao.getBookById(it) }
+        if (linkedBook != null) {
+            require(linkedBook.sync.ownerUserId == ownerUserId) { "Book belongs to a different account" }
+        }
+        val linkedTopic = link?.topicId?.let { learningTopicDao.getTopicById(it) }
+        if (linkedTopic != null) {
+            require(linkedTopic.sync.ownerUserId == ownerUserId) { "Topic belongs to a different account" }
+        }
+        val plannedSec = when (mode) {
+            FocusSessionMode.POMODORO -> profile.workMinutes * 60L
+            FocusSessionMode.CUSTOM -> {
+                val customMin = customDurationMinutes ?: prefs.defaultCustomMinutes
+                customMin.coerceIn(1, 480) * 60L
+            }
+            FocusSessionMode.STOPWATCH -> null
+        }
+        val sessionId = UuidV7.generate(nowWall)
+        val sessionEntity = FocusSessionEntity(
+            id = sessionId,
+            profileId = profile.id,
+            subjectId = link?.subjectId ?: linkedBook?.subjectId ?: linkedTopic?.subjectId,
+            bookId = link?.bookId,
+            topicId = link?.topicId,
+            taskId = link?.taskId,
+            bookStartPage = link?.bookStartPage ?: linkedBook?.currentPage,
+            bookEndPage = link?.bookEndPage,
+            sessionMode = mode.name,
+            status = FocusSessionStatus.RUNNING.name,
+            currentPhase = FocusPhase.FOCUS.name,
+            completedFocusCycles = 0,
+            startedAtWallMs = nowWall,
+            effectiveDayDate = effectiveDay.toString(),
+            plannedFocusSec = plannedSec,
+            actualFocusSec = 0L,
+            actualBreakSec = 0L,
+            pauseCount = 0,
+            sync = SyncMetadataEntity(
+                ownerUserId = ownerUserId,
+                createdAtMs = nowWall,
+                clientUpdatedAtMs = nowWall,
+                syncStatus = LearningOutboxEncoder.syncStatusFor(ownerUserId)
+            )
+        )
+        val segmentEntity = FocusSessionSegmentEntity(
+            id = UuidV7.generate(nowWall + 1L),
+            sessionId = sessionId,
+            segmentIndex = 0,
+            phase = FocusPhase.FOCUS.name,
+            startedAtWallMs = nowWall,
+            startedAtElapsedMs = nowElapsed,
+            bootCount = bootCount,
+            lastCheckpointedDurationMs = 0L,
+            plannedDurationMs = plannedSec?.times(1000L)
+        )
+        sessionDao.insertSession(sessionEntity)
+        sessionDao.insertSegment(segmentEntity)
+        return Triple(sessionEntity, profile, segmentEntity)
+    }
+
+    private suspend fun updateLinkedBookOnComplete(
+        session: FocusSessionEntity,
+        bookEndPage: Int?,
+        nowWall: Long
+    ): Int? {
+        val bookId = session.bookId
+        if (bookId == null || bookEndPage == null) return null
+        val book = learningDao.getBookById(bookId)
+        var resolvedEndPage: Int? = null
+        if (book != null && book.sync.ownerUserId == session.sync.ownerUserId) {
+            val targetPage = if (book.totalPages > 0) {
+                bookEndPage.coerceIn(0, book.totalPages)
+            } else {
+                bookEndPage.coerceAtLeast(0)
+            }
+            val completedBook = if (book.totalPages > 0) targetPage >= book.totalPages else book.isCompleted
+            val updatedBook = book.copy(
+                currentPage = targetPage,
+                isCompleted = completedBook,
+                sync = book.sync.copy(
+                    clientUpdatedAtMs = nowWall,
+                    version = book.sync.version + 1L,
+                    syncStatus = LearningOutboxEncoder.syncStatusFor(book.sync.ownerUserId)
+                )
+            )
+            learningDao.updateBook(updatedBook)
+            outboxDao.enqueue(
+                LearningOutboxEncoder.buildBookMutation(
+                    entity = updatedBook,
+                    opType = OP_UPSERT,
+                    baseVersion = book.sync.version,
+                    nowMs = nowWall
+                )
+            )
+            resolvedEndPage = targetPage
+        }
+        return resolvedEndPage
+    }
+
+    private suspend fun updateLinkedTopicOnComplete(
+        session: FocusSessionEntity,
+        markTopicMastered: Boolean,
+        nowWall: Long
+    ) {
+        val topicId = session.topicId
+        if (!markTopicMastered || topicId == null) return
+        val topic = learningTopicDao.getTopicById(topicId)
+        if (topic != null &&
+            topic.sync.ownerUserId == session.sync.ownerUserId &&
+            topic.status != TopicStatus.MASTERED.name
+        ) {
+            val updatedTopic = topic.copy(
+                status = TopicStatus.MASTERED.name,
+                sync = topic.sync.copy(
+                    clientUpdatedAtMs = nowWall,
+                    version = topic.sync.version + 1L,
+                    syncStatus = LearningOutboxEncoder.syncStatusFor(topic.sync.ownerUserId)
+                )
+            )
+            learningTopicDao.upsertTopic(updatedTopic)
+            outboxDao.enqueue(
+                LearningOutboxEncoder.buildTopicMutation(
+                    entity = updatedTopic,
+                    opType = OP_UPSERT,
+                    baseVersion = topic.sync.version,
+                    nowMs = nowWall
+                )
+            )
+        }
+    }
+
+    private fun isCompletableStatus(statusRaw: String): Boolean {
+        return statusRaw == FocusSessionStatus.RUNNING.name ||
+            statusRaw == FocusSessionStatus.PAUSED.name ||
+            statusRaw == FocusSessionStatus.AWAITING_NEXT_PHASE.name
     }
 
     private suspend fun reconcileActiveLocked(
@@ -595,5 +757,6 @@ class FocusSessionRepositoryImpl(
     private companion object {
         const val MAX_SESSION_SECONDS = 57_600L
         const val MAX_NOTE_LENGTH = 500
+        const val OP_UPSERT = "UPSERT"
     }
 }

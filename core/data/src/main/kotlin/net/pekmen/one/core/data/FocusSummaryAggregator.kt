@@ -2,7 +2,11 @@ package net.pekmen.one.core.data
 
 import net.pekmen.one.core.model.DailyFocusSummary
 import net.pekmen.one.core.model.EffectiveDayCalculator
+import net.pekmen.one.core.model.LearningBook
+import net.pekmen.one.core.model.LearningSubject
+import net.pekmen.one.core.model.LearningTopic
 import net.pekmen.one.core.model.ProfileFocusBreakdown
+import net.pekmen.one.core.model.SubjectWeeklyProgress
 import net.pekmen.one.core.model.WeeklyFocusSummary
 import java.time.LocalDate
 
@@ -56,5 +60,37 @@ object FocusSummaryAggregator {
             dailyBreakdown = dailyBreakdown,
             profileBreakdown = profileBreakdown
         )
+    }
+
+    fun summarizeSubjectsForWeek(
+        anchorDate: LocalDate,
+        subjects: List<LearningSubject>,
+        books: List<LearningBook>,
+        topics: List<LearningTopic>,
+        items: List<CompletedSessionItem>
+    ): List<SubjectWeeklyProgress> {
+        val windowDates = EffectiveDayCalculator.sevenDayWindowEndingOn(anchorDate)
+        val startDate = windowDates.first()
+        val endDate = windowDates.last()
+        val windowLinkedItems = items.filter { item ->
+            val day = item.session.effectiveDayDate
+            item.session.subjectId != null &&
+                !day.isBefore(startDate) &&
+                !day.isAfter(endDate)
+        }
+        val sessionsBySubject = windowLinkedItems.groupBy { it.session.subjectId }
+        val booksBySubject = books.groupBy { it.subjectId }
+        val topicsBySubject = topics.groupBy { it.subjectId }
+
+        return subjects.map { subject ->
+            val subjectSessions = sessionsBySubject[subject.id].orEmpty()
+            SubjectWeeklyProgress(
+                subject = subject,
+                netFocusSecondsThisWeek = subjectSessions.sumOf { it.session.actualFocusSec },
+                completedSessionCount = subjectSessions.size,
+                books = booksBySubject[subject.id].orEmpty(),
+                topics = topicsBySubject[subject.id].orEmpty()
+            )
+        }
     }
 }

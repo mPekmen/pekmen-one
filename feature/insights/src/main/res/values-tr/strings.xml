@@ -9,6 +9,9 @@
     <string name="insights_metric_sessions">Oturum</string>
     <string name="insights_metric_avg_rating">Ort. kalite</string>
     <string name="insights_profile_breakdown_title">Profile göre (7g)</string>
+    <string name="insights_subject_goals_title">Haftalık ders hedefleri</string>
+    <string name="insights_subject_goal_progress">%1$s / %2$s dk · %3$s oturum</string>
+    <string name="insights_session_book_pages">%1$s (s. %2$s → %3$s)</string>
     <string name="insights_recent_sessions_title">Tamamlanan oturumlar</string>
     <string name="insights_empty_title">Henüz tamamlanan oturum yok</string>
     <string name="insights_empty_body">Gerçek günlük ve haftalık istatistikleri görmek için bir odak oturumu başlatın veya geçmiş çalışma ekleyin.</string>

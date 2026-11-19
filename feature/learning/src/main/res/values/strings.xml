@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_title">Learning</string>
+    <string name="learning_add_subject">New subject</string>
+    <string name="learning_empty_title">Organize what you study</string>
+    <string name="learning_empty_body">Add a subject with a weekly focus goal, then track books and topics across your focus sessions.</string>
+
+    <string name="learning_weekly_goal_progress">%1$s / %2$s min</string>
+    <string name="learning_weekly_sessions_count">%1$s sessions</string>
+    <string name="learning_focus_on_subject">Focus</string>
+
+    <string name="learning_books_header">Books</string>
+    <string name="learning_add_book">Add book</string>
+    <string name="learning_no_books">No books added yet</string>
+    <string name="learning_book_pages_progress">Page %1$s / %2$s</string>
+    <string name="learning_book_pages_completed">Page %1$s / %2$s · Completed</string>
+    <string name="learning_book_completed_badge">Completed</string>
+
+    <string name="learning_topics_header">Topics</string>
+    <string name="learning_add_topic">Add topic</string>
+    <string name="learning_no_topics">No topics added yet</string>
+    <string name="learning_topic_status_todo">To do</string>
+    <string name="learning_topic_status_in_progress">In progress</string>
+    <string name="learning_topic_status_mastered">Mastered</string>
+
+    <string name="learning_subject_create_title">New subject</string>
+    <string name="learning_subject_edit_title">Edit subject</string>
+    <string name="learning_subject_title_label">Subject name</string>
+    <string name="learning_subject_goal_label">Weekly goal (minutes)</string>
+    <string name="learning_subject_color_label">Accent color</string>
+
+    <string name="learning_book_create_title">Add book</string>
+    <string name="learning_book_edit_title">Edit book</string>
+    <string name="learning_book_title_label">Book title</string>
+    <string name="learning_book_author_label">Author (optional)</string>
+    <string name="learning_book_total_pages_label">Total pages</string>
+    <string name="learning_book_current_page_label">Current page</string>
+
+    <string name="learning_topic_create_title">Add topic</string>
+    <string name="learning_topic_edit_title">Edit topic</string>
+    <string name="learning_topic_title_label">Topic name</string>
+    <string name="learning_topic_book_label">Linked book (optional)</string>
+    <string name="learning_topic_book_none">No book</string>
+    <string name="learning_topic_status_label">Status</string>
+
+    <string name="learning_delete_confirm">Tap again to delete</string>
+    <string name="learning_error_invalid_input">Please enter a valid title and non-negative numbers.</string>
+
+    <string name="learning_cd_edit_subject">Edit subject %1$s</string>
+    <string name="learning_cd_edit_book">Edit book %1$s</string>
+    <string name="learning_cd_edit_topic">Edit topic %1$s</string>
+    <string name="learning_cd_prev_page">Previous page</string>
+    <string name="learning_cd_next_page">Next page</string>
+    <string name="learning_cd_select_color">Select subject color</string>
+    <string name="learning_symbol_minus" translatable="false">−</string>
+    <string name="learning_symbol_plus" translatable="false">+</string>
+</resources>

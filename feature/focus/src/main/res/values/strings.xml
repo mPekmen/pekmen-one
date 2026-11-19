@@ -32,6 +32,13 @@
     <string name="focus_custom_plus_5">+5m</string>
     <string name="focus_minutes_chip">%1$s min</string>
 
+    <string name="focus_link_subject_label">Study subject (optional)</string>
+    <string name="focus_link_book_label">Book</string>
+    <string name="focus_link_topic_label">Topic</string>
+    <string name="focus_link_none">None</string>
+    <string name="focus_link_book_page_chip">%1$s (p. %2$s/%3$s)</string>
+    <string name="focus_link_active_prefix">Studying: %1$s</string>
+
     <string name="focus_notif_banner_title">Enable timer notifications</string>
     <string name="focus_notif_banner_body">Keep a live countdown on your status bar and get alerted when a break starts.</string>
     <string name="focus_notif_banner_allow">Allow</string>
@@ -44,6 +51,8 @@
     <string name="focus_wrapup_recorded_summary">Recorded %1$s net focus · %2$s break</string>
     <string name="focus_wrapup_adjust_label">Adjust focus minutes</string>
     <string name="focus_wrapup_adjust_hint">Trim forgotten idle minutes or fine-tune before saving.</string>
+    <string name="focus_wrapup_book_end_page_label">Book page reached (was %1$s / %2$s)</string>
+    <string name="focus_wrapup_mark_topic_mastered">Mark topic %1$s as mastered</string>
     <string name="focus_wrapup_rating_label">Focus quality</string>
     <string name="focus_wrapup_rating_cd">Rate focus quality %1$s out of 5</string>
     <string name="focus_wrapup_note_label">Quick note (optional)</string>

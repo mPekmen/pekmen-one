@@ -9,6 +9,9 @@
     <string name="insights_metric_sessions">Sessions</string>
     <string name="insights_metric_avg_rating">Avg quality</string>
     <string name="insights_profile_breakdown_title">By profile (7d)</string>
+    <string name="insights_subject_goals_title">Weekly subject goals</string>
+    <string name="insights_subject_goal_progress">%1$s / %2$s min · %3$s sessions</string>
+    <string name="insights_session_book_pages">%1$s (p. %2$s → %3$s)</string>
     <string name="insights_recent_sessions_title">Completed sessions</string>
     <string name="insights_empty_title">No completed sessions yet</string>
     <string name="insights_empty_body">Start a focus session or log a past study block to see real daily and weekly trends.</string>
