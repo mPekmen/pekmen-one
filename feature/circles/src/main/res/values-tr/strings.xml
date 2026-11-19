@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="circles_title">Özel Çemberler</string>
+    <string name="circles_action_create">Oluştur</string>
+    <string name="circles_action_join">Katıl</string>
+    <string name="circles_action_leave">Ayrıl</string>
+    <string name="circles_action_refresh">Yenile</string>
+    <string name="circles_action_cancel">İptal</string>
+    <string name="circles_action_add">Ekle</string>
+    <string name="circles_action_dismiss">Kapat</string>
+
+    <string name="circles_gate_banner_title">Çevrimdışı mod etkin (bulut eşitleme kapalı)</string>
+    <string name="circles_gate_banner_body">Bulut derleme bayrağı, sunucu adresi ve RLS doğrulaması etkinleşene kadar Özel Çemberler kapalı kalır. Odak geçmişiniz tamamen cihazınızda tutulur.</string>
+    <string name="circles_signin_banner_title">Oturum açma gerekli</string>
+    <string name="circles_signin_banner_body">Davetiyeli bir çember oluşturmak veya katılmak için Ayarlar bölümünden oturum açın.</string>
+
+    <string name="circles_empty_title">Henüz özel çember yok</string>
+    <string name="circles_empty_body">Küçük ve davetiyeli bir çember oluşturun veya davet koduyla katılın. Yalnızca onay verdiğiniz odak toplamları paylaşılır; notlar, puanlar, kitaplar veya görevler asla paylaşılmaz.</string>
+
+    <string name="circles_invite_code_label">Davet kodu: %1$s</string>
+    <string name="circles_member_count">%1$s etkin üye</string>
+
+    <string name="circles_privacy_title">İzinli paylaşım ve gizlilik</string>
+    <string name="circles_privacy_boundary_note">Paylaşım varsayılan olarak KAPALIDIR. Ham oturumlar, notlar, puanlar, kitaplar ve görevler asla paylaşılmaz.</string>
+    <string name="circles_switch_share_progress">İlerlemeyi paylaş</string>
+    <string name="circles_switch_share_progress_hint">Günlük ve haftalık toplam odak sürelerini bu çemberle paylaşır. Kapatıldığında özetiniz anında silinir.</string>
+    <string name="circles_switch_share_live">Canlı durumu paylaş</string>
+    <string name="circles_switch_share_live_hint">Yalnızca odak sayacı aktif olarak çalışırken canlı rozet gösterir.</string>
+    <string name="circles_subjects_title">Ders izin listesi</string>
+    <string name="circles_subjects_hint">Seçilen dersler özetinizde görünür. Hiçbiri seçilmezse yalnızca toplam süreler paylaşılır.</string>
+    <string name="circles_subjects_add_label">Ders adı ekle</string>
+    <string name="circles_subjects_empty_hint">Henüz ders eklenmedi. Yukarıdan ders ekleyin veya Öğrenme sekmesinde oluşturun.</string>
+
+    <string name="circles_leaderboard_title">Çember sıralaması</string>
+    <string name="circles_period_daily">Günlük</string>
+    <string name="circles_period_weekly">Haftalık</string>
+    <string name="circles_leaderboard_empty">Bu dönem için özet paylaşımını açan üye henüz yok.</string>
+    <string name="circles_live_focusing_badge">Şu an odakta</string>
+    <string name="circles_stat_total">Toplam: %1$s</string>
+    <string name="circles_stat_live_timer">Canlı sayaç: %1$s</string>
+    <string name="circles_stat_manual_logged">Elle eklenen: %1$s</string>
+
+    <string name="circles_dialog_create_title">Özel çember oluştur</string>
+    <string name="circles_dialog_create_confirm">Çember oluştur</string>
+    <string name="circles_dialog_name_label">Çember adı</string>
+    <string name="circles_dialog_display_name_label">Görünen adınız</string>
+    <string name="circles_dialog_join_title">Özel çembere katıl</string>
+    <string name="circles_dialog_join_confirm">Çembere katıl</string>
+    <string name="circles_dialog_invite_label">Davet kodu</string>
+    <string name="circles_dialog_leave_title">%1$s çemberinden ayrıl?</string>
+    <string name="circles_dialog_leave_body">Ayrıldığınızda erişiminiz anında kesilir ve paylaştığınız tüm özetler bu çemberden silinir.</string>
+    <string name="circles_dialog_leave_confirm">Çemberden ayrıl</string>
+
+    <string name="circles_error_gated">Bulut eşitleme şu an çevrimdışı kilitli. Çemberleri eşitlemek için doğrulanmış bulut RLS gerekir.</string>
+    <string name="circles_error_sign_in_required">Özel çember oluşturmak veya katılmak için lütfen oturum açın.</string>
+    <string name="circles_error_access_denied">Erişim reddedildi: etkin çember üyeliği gereklidir.</string>
+    <string name="circles_error_invalid_invite">Bu davet koduyla eşleşen etkin bir çember bulunamadı.</string>
+    <string name="circles_error_blank_fields">Lütfen tüm zorunlu alanları doldurun.</string>
+    <string name="circles_error_generic">Çember işlemi tamamlanamadı. Tekrar deneyin.</string>
+
+    <string name="circles_cd_shield">Gizlilik kalkanı</string>
+    <string name="circles_cd_gate">Bulut kilidi uyarısı</string>
+</resources>

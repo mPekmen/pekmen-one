@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="circles_title">Private Circles</string>
+    <string name="circles_action_create">Create</string>
+    <string name="circles_action_join">Join</string>
+    <string name="circles_action_leave">Leave</string>
+    <string name="circles_action_refresh">Refresh</string>
+    <string name="circles_action_cancel">Cancel</string>
+    <string name="circles_action_add">Add</string>
+    <string name="circles_action_dismiss">Dismiss</string>
+
+    <string name="circles_gate_banner_title">Offline mode active (cloud sync gated)</string>
+    <string name="circles_gate_banner_body">Private Circles stay disabled until cloud build flag, backend endpoint, and RLS verification are active. Your focus history remains strictly local.</string>
+    <string name="circles_signin_banner_title">Sign in required</string>
+    <string name="circles_signin_banner_body">Sign in from Settings to create or join an invite-only circle.</string>
+
+    <string name="circles_empty_title">No private circles yet</string>
+    <string name="circles_empty_body">Create a small invite-only circle or join with a code. Only opt-in focus totals are ever shared—never notes, ratings, books, or tasks.</string>
+
+    <string name="circles_invite_code_label">Invite code: %1$s</string>
+    <string name="circles_member_count">%1$s active members</string>
+
+    <string name="circles_privacy_title">Opt-in sharing &amp; privacy</string>
+    <string name="circles_privacy_boundary_note">Sharing is OFF by default. Raw sessions, reflection notes, ratings, books, and tasks are never shared.</string>
+    <string name="circles_switch_share_progress">Share progress</string>
+    <string name="circles_switch_share_progress_hint">Share daily and weekly aggregate focus totals with this circle. Turning OFF removes your summary immediately.</string>
+    <string name="circles_switch_share_live">Share live status</string>
+    <string name="circles_switch_share_live_hint">Show a live badge only while a focus timer is actively running.</string>
+    <string name="circles_subjects_title">Subject whitelist</string>
+    <string name="circles_subjects_hint">Selected subjects appear in your breakdown. If none are selected, only total durations are shared.</string>
+    <string name="circles_subjects_add_label">Add subject title</string>
+    <string name="circles_subjects_empty_hint">No subjects added yet. Add a subject above or create subjects in Learning.</string>
+
+    <string name="circles_leaderboard_title">Circle leaderboard</string>
+    <string name="circles_period_daily">Daily</string>
+    <string name="circles_period_weekly">Weekly</string>
+    <string name="circles_leaderboard_empty">No members have opted in to share summaries for this period yet.</string>
+    <string name="circles_rank_prefix" translatable="false">#%1$s</string>
+    <string name="circles_live_focusing_badge">Focusing now</string>
+    <string name="circles_stat_total">Total: %1$s</string>
+    <string name="circles_stat_live_timer">Live timer: %1$s</string>
+    <string name="circles_stat_manual_logged">Manual logged: %1$s</string>
+    <string name="circles_subject_chip" translatable="false">%1$s · %2$s</string>
+
+    <string name="circles_dialog_create_title">Create private circle</string>
+    <string name="circles_dialog_create_confirm">Create circle</string>
+    <string name="circles_dialog_name_label">Circle name</string>
+    <string name="circles_dialog_display_name_label">Your display name</string>
+    <string name="circles_dialog_join_title">Join private circle</string>
+    <string name="circles_dialog_join_confirm">Join circle</string>
+    <string name="circles_dialog_invite_label">Invite code</string>
+    <string name="circles_dialog_leave_title">Leave %1$s?</string>
+    <string name="circles_dialog_leave_body">Leaving immediately revokes your access and removes all your shared summaries from this circle.</string>
+    <string name="circles_dialog_leave_confirm">Leave circle</string>
+
+    <string name="circles_error_gated">Cloud sync is currently gated offline. Enable verified cloud RLS to sync circles.</string>
+    <string name="circles_error_sign_in_required">Please sign in before creating or joining a private circle.</string>
+    <string name="circles_error_access_denied">Access denied: active circle membership is required.</string>
+    <string name="circles_error_invalid_invite">No active circle matched that invite code.</string>
+    <string name="circles_error_blank_fields">Please complete all required fields.</string>
+    <string name="circles_error_generic">Could not complete circle action. Try again.</string>
+
+    <string name="circles_cd_shield">Privacy shield</string>
+    <string name="circles_cd_gate">Cloud gate warning</string>
+</resources>
