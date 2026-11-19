@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="portability_section_title">Yedekleme ve Dışa Aktarma</string>
+    <string name="portability_section_subtitle">Depolama izni gerektirmeden Android dosya seçici ile sürümlü JSON yedekleri ve CSV tabloları oluşturun veya geri yükleyin.</string>
+    <string name="portability_export_json_button">JSON yedeği dışa aktar</string>
+    <string name="portability_restore_json_button">JSON yedeğinden geri yükle</string>
+    <string name="portability_csv_section_label">Tablo CSV dışa aktarma</string>
+    <string name="portability_export_sessions_csv">Oturumlar CSV</string>
+    <string name="portability_export_learning_csv">Öğrenme CSV</string>
+    <string name="portability_export_tasks_csv">Görevler CSV</string>
+    <string name="portability_status_working">Yedekleme işlemi sürüyor…</string>
+    <string name="portability_export_json_success">JSON yedeği başarıyla dışa aktarıldı.</string>
+    <string name="portability_export_csv_success">CSV dosyası başarıyla dışa aktarıldı.</string>
+    <string name="portability_restore_success_title">Geri yükleme tamamlandı (şema v%1$s)</string>
+    <string name="portability_restore_counts_primary">Profil: %1$s · Oturum: %2$s · Segment: %3$s</string>
+    <string name="portability_restore_counts_secondary">Ders: %1$s · Kitap: %2$s · Konu: %3$s · Görev: %4$s</string>
+    <string name="portability_error_title">İşlem başarısız</string>
+    <string name="portability_error_malformed_json">Seçilen dosya geçerli bir Pekmen One JSON yedeği değil.</string>
+    <string name="portability_error_unsupported_schema">Bu yedek desteklenmeyen bir şema sürümü kullanıyor.</string>
+    <string name="portability_error_invalid_identifier">Yedek reddedildi: bir veya daha fazla kayıt kimliği geçersiz.</string>
+    <string name="portability_error_invalid_foreign_key">Yedek reddedildi: kayıtlar arasında kopuk referans bulundu. Mevcut veriler değiştirilmedi.</string>
+    <string name="portability_error_invalid_field_bounds">Yedek reddedildi: bir veya daha fazla alan geçersiz değer veya sınır içeriyor.</string>
+    <string name="portability_error_io_failure">Seçilen belge okunamadı veya yazılamadı.</string>
+    <string name="portability_error_detail_format">Ayrıntı: %1$s</string>
+</resources>
