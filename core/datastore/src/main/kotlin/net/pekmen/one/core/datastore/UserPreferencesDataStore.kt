@@ -91,11 +91,12 @@ class UserPreferencesDataStore(
     }
 
     suspend fun setActiveOwnerUserId(ownerUserId: String?) {
+        val normalized = ownerUserId?.trim()?.ifEmpty { null }
         dataStore.edit { prefs ->
-            if (ownerUserId == null) {
+            if (normalized == null) {
                 prefs.remove(KEY_ACTIVE_OWNER_USER_ID)
             } else {
-                prefs[KEY_ACTIVE_OWNER_USER_ID] = ownerUserId
+                prefs[KEY_ACTIVE_OWNER_USER_ID] = normalized
             }
         }
     }

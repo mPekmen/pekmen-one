@@ -13,7 +13,10 @@ interface SyncOutboxDao {
     @Query("SELECT * FROM sync_outbox ORDER BY created_at_ms ASC")
     fun observeOutbox(): Flow<List<SyncOutboxEntity>>
 
-    @Query("SELECT COUNT(*) FROM sync_outbox WHERE owner_user_id IS :ownerUserId OR :ownerUserId IS NULL")
+    @Query(
+        "SELECT COUNT(*) FROM sync_outbox " +
+            "WHERE (:ownerUserId IS NULL AND owner_user_id IS NULL) OR owner_user_id = :ownerUserId"
+    )
     fun observePendingCount(ownerUserId: String?): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM sync_outbox WHERE owner_user_id = :ownerUserId")

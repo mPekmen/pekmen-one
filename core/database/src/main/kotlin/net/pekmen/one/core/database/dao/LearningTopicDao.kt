@@ -1,9 +1,8 @@
 package net.pekmen.one.core.database.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import net.pekmen.one.core.database.entity.LearningTopicEntity
 
@@ -25,7 +24,7 @@ interface LearningTopicDao {
     @Query("SELECT * FROM learning_topics WHERE id = :topicId AND deleted_at_ms IS NULL LIMIT 1")
     suspend fun getTopicById(topicId: String): LearningTopicEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertTopic(topic: LearningTopicEntity)
 
     @Query(

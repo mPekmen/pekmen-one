@@ -1,10 +1,9 @@
 package net.pekmen.one.core.database.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import net.pekmen.one.core.database.entity.PlannerTaskEntity
 
@@ -27,11 +26,19 @@ interface PlannerTaskDao {
     @Query(
         "SELECT * FROM planner_tasks " +
             "WHERE deleted_at_ms IS NULL AND status = 'OPEN' AND reminder_at_wall_ms > :afterWallMs " +
+            "AND ((:ownerUserId IS NULL AND owner_user_id IS NULL) OR owner_user_id = :ownerUserId) " +
+            "ORDER BY reminder_at_wall_ms ASC"
+    )
+    suspend fun getPendingReminderTasksByOwner(afterWallMs: Long, ownerUserId: String?): List<PlannerTaskEntity>
+
+    @Query(
+        "SELECT * FROM planner_tasks " +
+            "WHERE deleted_at_ms IS NULL AND status = 'OPEN' AND reminder_at_wall_ms > :afterWallMs " +
             "ORDER BY reminder_at_wall_ms ASC"
     )
     suspend fun getPendingReminderTasks(afterWallMs: Long): List<PlannerTaskEntity>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertTask(task: PlannerTaskEntity)
 
     @Update

@@ -1,10 +1,9 @@
 package net.pekmen.one.core.database.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import net.pekmen.one.core.database.entity.LearningBookEntity
 import net.pekmen.one.core.database.entity.LearningSubjectEntity
@@ -31,7 +30,7 @@ interface LearningDao {
     @Query("SELECT * FROM learning_subjects WHERE id = :subjectId AND deleted_at_ms IS NULL LIMIT 1")
     suspend fun getSubjectById(subjectId: String): LearningSubjectEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertSubject(subject: LearningSubjectEntity)
 
     @Update
@@ -57,7 +56,7 @@ interface LearningDao {
     @Query("SELECT * FROM learning_books WHERE id = :bookId AND deleted_at_ms IS NULL LIMIT 1")
     suspend fun getBookById(bookId: String): LearningBookEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertBook(book: LearningBookEntity)
 
     @Update
