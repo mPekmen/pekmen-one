@@ -38,6 +38,7 @@ class CloudAccountRepositoryImpl(
 
     private val syncOutboxDao = database.syncOutboxDao()
     private val accountClaimDao = database.accountClaimDao()
+    private val socialCircleDao = database.socialCircleDao()
     private val authMutex = Mutex()
     private val vaultHydrated = MutableStateFlow(false)
     private val sessionUpdates = MutableStateFlow<AuthSessionRecord?>(null)
@@ -103,7 +104,8 @@ class CloudAccountRepositoryImpl(
         email: String,
         code: String
     ): Result<AccountState.SignedIn> {
-        val currentOwner = resolveActiveSessionLocked()?.userId
+        val currentSession = resolveActiveSessionLocked()
+        val currentOwner = currentSession?.userId
             ?: preferencesDataStore.preferences.first().activeOwnerUserId
         val session = authGateway.verifyOtp(email, code).getOrElse { error ->
             return Result.failure(error)
@@ -117,7 +119,13 @@ class CloudAccountRepositoryImpl(
             }
         }
         if (currentOwner != session.userId) {
-            syncOutboxDao.clearCursors()
+            if (currentSession != null && gateStatus.isLiveCloudEnabled) {
+                runCatching { authGateway.revokeSession(currentSession.accessToken) }
+            }
+            database.withTransaction {
+                clearCachedCircleTables()
+                syncOutboxDao.clearCursors()
+            }
             syncEngine.resetRuntimeStatus()
         }
         tokenVault.saveSession(session)
@@ -187,6 +195,7 @@ class CloudAccountRepositoryImpl(
             if (forceDiscardPending && pendingCount > 0) {
                 discardOutboxForOwner(activeOwner)
             }
+            clearCachedCircleTables()
             syncOutboxDao.clearCursors()
         }
 
@@ -233,6 +242,12 @@ class CloudAccountRepositoryImpl(
             vaultHydrated.value = true
         }
         return sessionUpdates.value
+    }
+
+    private suspend fun clearCachedCircleTables() {
+        socialCircleDao.clearAllSummaries()
+        socialCircleDao.clearAllMemberships()
+        socialCircleDao.clearAllCircles()
     }
 
     private suspend fun discardOutboxForOwner(ownerUserId: String) {

@@ -39,7 +39,10 @@ internal object BackupValidator {
     private val themeNames = ThemePreference.entries.map { it.name }.toSet()
     private val slugNames = BuiltInProfileSlug.entries.map { it.name }.toSet()
     private val modeNames = FocusSessionMode.entries.map { it.name }.toSet()
-    private val statusNames = FocusSessionStatus.entries.map { it.name }.toSet()
+    private val restorableSessionStatuses = setOf(
+        FocusSessionStatus.COMPLETED.name,
+        FocusSessionStatus.ABANDONED.name
+    )
     private val phaseNames = FocusPhase.entries.map { it.name }.toSet()
     private val syncStatusNames = SyncStatus.entries.map { it.name }.toSet()
     private val topicStatusNames = TopicStatus.entries.map { it.name }.toSet()
@@ -271,7 +274,7 @@ internal object BackupValidator {
         val validAwaiting = session.awaitingNextPhase == null || session.awaitingNextPhase in phaseNames
         val validDate = runCatching { LocalDate.parse(session.effectiveDayDate) }.isSuccess
         return session.sessionMode in modeNames &&
-            session.status in statusNames &&
+            session.status in restorableSessionStatuses &&
             session.currentPhase in phaseNames &&
             validAwaiting &&
             validDate

@@ -2,6 +2,7 @@ package net.pekmen.one.core.data
 
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import net.pekmen.one.core.database.entity.FocusProfileEntity
 import net.pekmen.one.core.database.entity.FocusSessionEntity
 import net.pekmen.one.core.database.entity.LearningBookEntity
 import net.pekmen.one.core.database.entity.LearningSubjectEntity
@@ -11,6 +12,7 @@ import net.pekmen.one.core.model.SyncStatus
 import net.pekmen.one.core.model.UuidV7
 
 internal object LearningOutboxEncoder {
+    private const val TABLE_PROFILES = "focus_profiles"
     private const val TABLE_SUBJECTS = "learning_subjects"
     private const val TABLE_BOOKS = "learning_books"
     private const val TABLE_TOPICS = "learning_topics"
@@ -22,6 +24,44 @@ internal object LearningOutboxEncoder {
 
     fun syncStatusFor(ownerUserId: String?): String {
         return if (ownerUserId == null) SyncStatus.LOCAL_ONLY.name else SyncStatus.PENDING_UPLOAD.name
+    }
+
+    fun buildProfileMutation(
+        entity: FocusProfileEntity,
+        opType: String,
+        baseVersion: Long,
+        nowMs: Long
+    ): SyncOutboxEntity {
+        val payload = buildJsonObject {
+            put("id", entity.id)
+            put("built_in_slug", entity.builtInSlug)
+            put("custom_name", entity.customName)
+            put("color_hex", entity.colorHex)
+            put("icon_key", entity.iconKey)
+            put("default_mode", entity.defaultMode)
+            put("work_minutes", entity.workMinutes)
+            put("short_break_minutes", entity.shortBreakMinutes)
+            put("long_break_minutes", entity.longBreakMinutes)
+            put("cycles_before_long_break", entity.cyclesBeforeLongBreak)
+            put("dnd_enabled", entity.dndEnabled)
+            put("sort_order", entity.sortOrder)
+            put("is_archived", entity.isArchived)
+            put("owner_user_id", entity.sync.ownerUserId)
+            put("client_updated_at_ms", entity.sync.clientUpdatedAtMs)
+            put("deleted_at_ms", entity.sync.deletedAtMs)
+            put("version", entity.sync.version)
+        }.toString()
+        return SyncOutboxEntity(
+            mutationId = UuidV7.generate(nowMs),
+            entityTable = TABLE_PROFILES,
+            entityId = entity.id,
+            opType = opType,
+            payloadJson = payload,
+            baseVersion = baseVersion,
+            attemptCount = 0,
+            createdAtMs = nowMs,
+            ownerUserId = entity.sync.ownerUserId
+        )
     }
 
     fun buildSubjectMutation(

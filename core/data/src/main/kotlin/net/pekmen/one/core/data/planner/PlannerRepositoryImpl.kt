@@ -94,6 +94,13 @@ class PlannerRepositoryImpl(
 
                 lateinit var savedEntity: PlannerTaskEntity
                 database.withTransaction {
+                    request.subjectId?.let { subjectId ->
+                        learningDao.getSubjectById(subjectId)?.let { subject ->
+                            check(subject.sync.ownerUserId == ownerId && subject.sync.deletedAtMs == null) {
+                                "Subject belongs to a different owner or is deleted"
+                            }
+                        }
+                    }
                     val existingId = request.existingId
                     if (existingId != null) {
                         val existing = requireNotNull(plannerTaskDao.getTaskById(existingId)) {

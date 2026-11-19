@@ -126,7 +126,8 @@ class AppContainer(context: Context) {
             profileDao = database.focusProfileDao(),
             timeProvider = timeProvider,
             accountSessionDao = database.accountSessionDao(),
-            preferencesDataStore = userPreferencesDataStore
+            preferencesDataStore = userPreferencesDataStore,
+            syncOutboxDao = database.syncOutboxDao()
         )
     }
 
@@ -227,7 +228,12 @@ class AppContainer(context: Context) {
     }
 
     val backupPortabilityService: BackupPortabilityService by lazy {
-        BackupPortabilityServiceImpl(database, userPreferencesDataStore, timeProvider)
+        BackupPortabilityServiceImpl(
+            database = database,
+            preferencesDataStore = userPreferencesDataStore,
+            timeProvider = timeProvider,
+            onRestoreCompleted = { plannerRepository.rescheduleAllPendingReminders() }
+        )
     }
 
     private val cloudSlice: CloudContainerSlice by lazy {

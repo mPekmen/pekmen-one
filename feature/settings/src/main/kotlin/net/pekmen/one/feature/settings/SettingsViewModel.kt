@@ -25,7 +25,9 @@ import net.pekmen.one.core.model.FocusProfile
 import net.pekmen.one.core.model.ThemePreference
 import net.pekmen.one.core.model.UserPreferences
 import net.pekmen.one.core.portability.BackupPortabilityService
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 
 data class SettingsUiState(
     val preferences: UserPreferences = UserPreferences(),
@@ -177,8 +179,9 @@ class SettingsViewModel(
             portabilityFlow.value = PortabilityUiState(isBusy = true, status = PortabilityStatus.InProgress)
             val status = try {
                 val raw = withContext(Dispatchers.IO) {
-                    resolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                    val stream = resolver.openInputStream(uri)
                         ?: throw IOException("Input document stream unavailable")
+                    stream.use { input -> readBoundedUtf8(input, MAX_BACKUP_BYTES) }
                 }
                 when (val res = service.importJsonArchive(raw)) {
                     is BackupImportResult.Success -> PortabilityStatus.RestoreSuccess(res.report)
@@ -222,7 +225,25 @@ class SettingsViewModel(
         }
     }
 
+    private fun readBoundedUtf8(input: InputStream, maxBytes: Int): String {
+        val buffer = ByteArray(STREAM_BUFFER_BYTES)
+        val out = ByteArrayOutputStream()
+        var total = 0
+        while (true) {
+            val read = input.read(buffer)
+            if (read <= 0) break
+            total += read
+            if (total > maxBytes) {
+                throw IOException("Backup file exceeds 16 MiB limit")
+            }
+            out.write(buffer, 0, read)
+        }
+        return out.toByteArray().toString(Charsets.UTF_8)
+    }
+
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+        const val MAX_BACKUP_BYTES = 16 * 1024 * 1024
+        const val STREAM_BUFFER_BYTES = 8 * 1024
     }
 }

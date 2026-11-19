@@ -27,7 +27,8 @@ import java.io.IOException
 class BackupPortabilityServiceImpl(
     private val database: PekmenDatabase,
     private val preferencesDataStore: UserPreferencesDataStore,
-    private val timeProvider: TimeProvider
+    private val timeProvider: TimeProvider,
+    private val onRestoreCompleted: (suspend () -> Unit)? = null
 ) : BackupPortabilityService {
 
     private val portabilityDao = database.portabilityDao()
@@ -66,12 +67,26 @@ class BackupPortabilityServiceImpl(
             is BackupValidationResult.Valid -> validation.archive
         }
 
+        val activeOwner = BackupOwnershipHelper.normalizeOwner(
+            preferencesDataStore.preferences.first().activeOwnerUserId
+        )
+        BackupOwnershipHelper.validateArchiveOwnership(archive, activeOwner)?.let { return it }
+        val normalized = BackupOwnershipHelper.normalizeArchive(archive, activeOwner)
+
         return try {
             database.withTransaction {
-                upsertAllEntities(archive)
-                archive.preferences?.let { restorePreferencesAtomically(it) }
+                BackupOwnershipHelper.assertNoCrossOwnerCollisions(database, normalized, activeOwner)
+                upsertAllEntities(normalized)
+                BackupOwnershipHelper.enqueueClaimedGuestOutbox(
+                    database = database,
+                    originalArchive = archive,
+                    activeOwner = activeOwner,
+                    nowMs = timeProvider.wallTimeMs()
+                )
+                normalized.preferences?.let { restorePreferencesAtomically(it) }
             }
-            BackupImportResult.Success(archive.toImportReport())
+            onRestoreCompleted?.invoke()
+            BackupImportResult.Success(normalized.toImportReport())
         } catch (ce: CancellationException) {
             throw ce
         } catch (err: SQLiteConstraintException) {

@@ -53,7 +53,7 @@ class CirclesRepositoryImpl(
             flowOf(emptyList())
         } else {
             circleDao.observeJoinedCircles(ownerId).map { entities ->
-                entities.map { it.toDomain() }
+                entities.map { it.toCircleModel() }
             }
         }
     }
@@ -67,7 +67,7 @@ class CirclesRepositoryImpl(
                 emptyList()
             } else {
                 val isMember = rows.any { it.userId == ownerId && it.leftAtMs == null }
-                if (isMember) rows.map { it.toDomain() } else emptyList()
+                if (isMember) rows.map { it.toMembershipModel() } else emptyList()
             }
         }
     }
@@ -390,7 +390,7 @@ class CirclesRepositoryImpl(
         }
     }
 
-    private fun SocialCircleEntity.toDomain(): SocialCircle = SocialCircle(
+    private fun SocialCircleEntity.toCircleModel(): SocialCircle = SocialCircle(
         id = id,
         name = name,
         inviteCode = inviteCode,
@@ -407,7 +407,7 @@ class CirclesRepositoryImpl(
         deletedAtMs = null
     )
 
-    private fun SocialCircleMembershipEntity.toDomain(): CircleMembership = CircleMembership(
+    private fun SocialCircleMembershipEntity.toMembershipModel(): CircleMembership = CircleMembership(
         id = id,
         circleId = circleId,
         userId = userId,

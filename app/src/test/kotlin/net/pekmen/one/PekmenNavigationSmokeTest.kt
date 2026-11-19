@@ -124,4 +124,50 @@ class PekmenNavigationSmokeTest {
         composeRule.onNodeWithText("Ayarlar").performClick()
         composeRule.onNodeWithText("Koyu (Midnight Violet)").assertIsDisplayed()
     }
+
+    @Test
+    @Config(qualifiers = "en-w840dp-h480dp")
+    fun `expanded width rail navigates across all tabs and circles`() {
+        val app = ApplicationProvider.getApplicationContext<PekmenApplication>()
+        composeRule.setContent {
+            PekmenOneTheme {
+                PekmenAppShell(
+                    widthSizeClass = WindowWidthSizeClass.Expanded,
+                    sessionRepository = app.container.sessionRepository,
+                    profileRepository = app.container.profileRepository,
+                    historyRepository = app.container.historyRepository,
+                    learningRepository = app.container.learningRepository,
+                    plannerRepository = app.container.plannerRepository,
+                    calendarInsertGateway = app.container.calendarInsertGateway,
+                    userPreferencesRepository = app.container.userPreferencesRepository,
+                    diagnosticsRepository = app.container.diagnosticsRepository,
+                    backupPortabilityService = app.container.backupPortabilityService,
+                    cloudAccountRepository = app.container.cloudAccountRepository,
+                    circlesRepository = app.container.circlesRepository,
+                    cloudRlsGateProvider = app.container.cloudRlsGateProvider
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Start focus").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Learning").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Organize what you study").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Planner").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Add task").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Summary").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Last 7 days").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Open Private Circles"))
+        composeRule.onNodeWithText("Open Private Circles").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Private Circles").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Settings").performClick()
+        composeRule.onNodeWithText("Dark (Midnight Violet)").assertIsDisplayed()
+    }
 }

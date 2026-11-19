@@ -50,4 +50,13 @@ interface SocialCircleDao {
 
     @Query("DELETE FROM social_member_summaries WHERE circle_id = :circleId")
     suspend fun clearCircleSummaries(circleId: String)
+
+    @Query("DELETE FROM social_member_summaries")
+    suspend fun clearAllSummaries()
+
+    @Query("DELETE FROM social_circle_memberships")
+    suspend fun clearAllMemberships()
+
+    @Query("DELETE FROM social_circles")
+    suspend fun clearAllCircles()
 }

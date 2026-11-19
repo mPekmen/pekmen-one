@@ -30,7 +30,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        handleShortcutIntent(intent)
+        if (savedInstanceState == null) {
+            handleShortcutIntent(intent)
+        }
 
         setContent {
             val prefs by appContainer.userPreferencesRepository.preferences
@@ -77,12 +79,15 @@ class MainActivity : ComponentActivity() {
             val active = appContainer.sessionRepository.activeSession.first()
             when (command) {
                 is FocusShortcutCommand.StartProfile -> {
-                    appContainer.userPreferencesRepository.setSelectedProfileId(command.profileId)
-                    if (active == null) {
-                        appContainer.sessionRepository.startSession(
-                            profileId = command.profileId,
-                            mode = command.mode
-                        )
+                    val profiles = appContainer.profileRepository.profiles.first()
+                    if (profiles.any { it.id == command.profileId }) {
+                        appContainer.userPreferencesRepository.setSelectedProfileId(command.profileId)
+                        if (active == null) {
+                            appContainer.sessionRepository.startSession(
+                                profileId = command.profileId,
+                                mode = command.mode
+                            )
+                        }
                     }
                 }
                 FocusShortcutCommand.ToggleActiveFocus -> {
@@ -93,8 +98,12 @@ class MainActivity : ComponentActivity() {
                             appContainer.sessionRepository.startAwaitingNextPhase()
                         null, FocusSessionStatus.COMPLETED, FocusSessionStatus.ABANDONED -> {
                             val prefs = appContainer.userPreferencesRepository.preferences.first()
-                            val profileId = prefs.selectedProfileId ?: BuiltInProfiles.STUDY_ID
-                            appContainer.sessionRepository.startSession(profileId, FocusSessionMode.POMODORO)
+                            val profiles = appContainer.profileRepository.profiles.first()
+                            val selected = profiles.firstOrNull { it.id == prefs.selectedProfileId }
+                                ?: profiles.firstOrNull { it.id == BuiltInProfiles.STUDY_ID }
+                            val profileId = selected?.id ?: BuiltInProfiles.STUDY_ID
+                            val mode = selected?.defaultMode ?: FocusSessionMode.POMODORO
+                            appContainer.sessionRepository.startSession(profileId, mode)
                         }
                     }
                 }

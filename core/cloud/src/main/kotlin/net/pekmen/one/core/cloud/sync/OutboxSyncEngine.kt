@@ -26,6 +26,8 @@ import net.pekmen.one.core.database.entity.SyncCursorEntity
 import net.pekmen.one.core.database.entity.SyncMetadataEntity
 import net.pekmen.one.core.database.entity.SyncOutboxEntity
 import net.pekmen.one.core.model.AccountState
+import net.pekmen.one.core.model.BuiltInProfileSlug
+import net.pekmen.one.core.model.BuiltInProfiles
 import net.pekmen.one.core.model.CloudSyncPhase
 import net.pekmen.one.core.model.SyncStateSummary
 import net.pekmen.one.core.model.SyncStatus
@@ -162,7 +164,7 @@ class OutboxSyncEngine(
                     sortedBatch.forEach { syncOutboxDao.markFailedAttempt(it.mutationId, error.message) }
                     return Result.failure(error)
                 }
-            val outcome = applyPushResponse(items, response)
+            val outcome = applyPushResponse(session.userId, items, response)
             totalAccepted += outcome.acceptedCount
             if (outcome.rejectionError != null) {
                 return Result.failure(IllegalStateException(outcome.rejectionError))
@@ -172,6 +174,7 @@ class OutboxSyncEngine(
     }
 
     private suspend fun applyPushResponse(
+        ownerUserId: String,
         items: List<SyncMutationItem>,
         response: SyncPushResponse
     ): BatchPushOutcome {
@@ -185,6 +188,11 @@ class OutboxSyncEngine(
                     val item = itemsByMutationId[ack.mutationId]
                     val winner = ack.winningPayload
                     if (winner != null) {
+                        if (winner.sync.ownerUserId != ownerUserId) {
+                            throw RlsAuthorizationException(
+                                "Cross-tenant winningPayload rejected for ${ack.entityTable}:${ack.entityId}"
+                            )
+                        }
                         recordStore.insertOrUpdateRemotePayload(winner, ack.serverUpdatedAtMs)
                     } else if (item != null) {
                         recordStore.markSyncedIfUnchanged(
@@ -397,7 +405,10 @@ internal class RoomSyncRecordStore(
         queryPayloads("SELECT * FROM planner_tasks WHERE owner_user_id IS NULL", emptyArray()) { cursor ->
             result += cursor.toPlannerTaskPayload(ownerOverride = ownerUserId, claimedAtMs = updatedAtMs)
         }
-        queryPayloads("SELECT * FROM focus_sessions WHERE owner_user_id IS NULL", emptyArray()) { cursor ->
+        queryPayloads(
+            "SELECT * FROM focus_sessions WHERE owner_user_id IS NULL AND status IN ('COMPLETED', 'ABANDONED')",
+            emptyArray()
+        ) { cursor ->
             val sessionId = cursor.str("id")
             val segments = readSegmentsForSession(sessionId)
             result += cursor.toFocusSessionPayload(segments, ownerOverride = ownerUserId, claimedAtMs = updatedAtMs)
@@ -488,7 +499,7 @@ internal class RoomSyncRecordStore(
     }
 
     suspend fun insertOrUpdateRemotePayload(payload: SyncEntityPayload, serverUpdatedAtMs: Long) {
-        val exists = rowExists(payload.table.tableName, payload.id)
+        val exists = verifyRemotePayloadWriteSafety(payload)
         val syncMeta = payload.sync.toEntity(serverUpdatedAtMs = serverUpdatedAtMs)
         when (payload) {
             is FocusProfilePayload -> {
@@ -518,9 +529,39 @@ internal class RoomSyncRecordStore(
         }
     }
 
-    private fun rowExists(tableName: String, id: String): Boolean {
-        return database.query(SimpleSQLiteQuery("SELECT 1 FROM $tableName WHERE id = ? LIMIT 1", arrayOf<Any>(id)))
-            .use { it.moveToFirst() }
+    private fun verifyRemotePayloadWriteSafety(payload: SyncEntityPayload): Boolean {
+        if (payload is FocusProfilePayload) {
+            val isCustom = payload.builtInSlug == BuiltInProfileSlug.CUSTOM.name &&
+                payload.id !in BUILT_IN_PROFILE_IDS
+            rlsRequire(isCustom) { "Built-in profiles cannot be overwritten remotely: ${payload.id}" }
+        }
+        if (payload is FocusSessionPayload) {
+            rlsRequire(payload.segments.all { it.sessionId == payload.id }) {
+                "Segment session_id mismatch on ${payload.id}"
+            }
+        }
+        val sql = "SELECT owner_user_id FROM ${payload.table.tableName} WHERE id = ? LIMIT 1"
+        return database.query(SimpleSQLiteQuery(sql, arrayOf<Any>(payload.id))).use { cursor ->
+            if (!cursor.moveToFirst()) return@use false
+            val localOwner = cursor.strOrNull("owner_user_id")
+            rlsRequire(localOwner == payload.sync.ownerUserId) {
+                "Local row owner mismatch for ${payload.table.tableName}:${payload.id}"
+            }
+            true
+        }
+    }
+
+    private inline fun rlsRequire(condition: Boolean, message: () -> String) {
+        if (!condition) throw RlsAuthorizationException(message())
+    }
+
+    private companion object {
+        val BUILT_IN_PROFILE_IDS = setOf(
+            BuiltInProfiles.STUDY_ID,
+            BuiltInProfiles.WORK_ID,
+            BuiltInProfiles.SLEEP_ID,
+            BuiltInProfiles.PERSONAL_ID
+        )
     }
 
     private fun readSegmentsForSession(sessionId: String): List<FocusSessionSegmentPayload> {

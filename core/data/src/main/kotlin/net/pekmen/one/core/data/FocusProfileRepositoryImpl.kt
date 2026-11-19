@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import net.pekmen.one.core.database.dao.AccountSessionDao
 import net.pekmen.one.core.database.dao.FocusProfileDao
+import net.pekmen.one.core.database.dao.SyncOutboxDao
 import net.pekmen.one.core.database.entity.FocusProfileEntity
 import net.pekmen.one.core.database.entity.SyncMetadataEntity
 import net.pekmen.one.core.datastore.UserPreferencesDataStore
@@ -22,7 +23,8 @@ class FocusProfileRepositoryImpl(
     private val profileDao: FocusProfileDao,
     private val timeProvider: TimeProvider,
     private val accountSessionDao: AccountSessionDao? = null,
-    private val preferencesDataStore: UserPreferencesDataStore? = null
+    private val preferencesDataStore: UserPreferencesDataStore? = null,
+    private val syncOutboxDao: SyncOutboxDao? = null
 ) : FocusProfileRepository {
 
     override val profiles: Flow<List<FocusProfile>> =
@@ -105,6 +107,7 @@ class FocusProfileRepositoryImpl(
                 )
             )
             profileDao.update(updated)
+            enqueueCustomProfileOutbox(isCustom, updated, existing.sync.version, now)
             return@runCatching updated.toDomain()
         }
 
@@ -132,7 +135,25 @@ class FocusProfileRepositoryImpl(
             )
         )
         profileDao.insert(created)
+        enqueueCustomProfileOutbox(isCustom = true, entity = created, baseVersion = 0L, nowMs = now)
         created.toDomain()
+    }
+
+    private suspend fun enqueueCustomProfileOutbox(
+        isCustom: Boolean,
+        entity: FocusProfileEntity,
+        baseVersion: Long,
+        nowMs: Long
+    ) {
+        if (!isCustom || entity.sync.ownerUserId == null) return
+        syncOutboxDao?.enqueue(
+            LearningOutboxEncoder.buildProfileMutation(
+                entity = entity,
+                opType = "UPSERT",
+                baseVersion = baseVersion,
+                nowMs = nowMs
+            )
+        )
     }
 
     private companion object {

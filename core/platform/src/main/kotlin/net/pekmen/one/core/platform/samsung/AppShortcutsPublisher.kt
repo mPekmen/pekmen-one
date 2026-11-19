@@ -110,29 +110,20 @@ class AppShortcutsPublisher(
             val action = intent?.action ?: return null
             return when (action) {
                 ACTION_START_STUDY_POMODORO -> FocusShortcutCommand.StartProfile(
-                    profileId = resolveProfileExtra(intent, BuiltInProfiles.STUDY_ID),
-                    mode = resolveModeExtra(intent, FocusSessionMode.POMODORO)
+                    profileId = BuiltInProfiles.STUDY_ID,
+                    mode = FocusSessionMode.POMODORO
                 )
                 ACTION_START_WORK_FOCUS -> FocusShortcutCommand.StartProfile(
-                    profileId = resolveProfileExtra(intent, BuiltInProfiles.WORK_ID),
-                    mode = resolveModeExtra(intent, FocusSessionMode.POMODORO)
+                    profileId = BuiltInProfiles.WORK_ID,
+                    mode = FocusSessionMode.POMODORO
                 )
                 ACTION_START_SLEEP_CUSTOM -> FocusShortcutCommand.StartProfile(
-                    profileId = resolveProfileExtra(intent, BuiltInProfiles.SLEEP_ID),
-                    mode = resolveModeExtra(intent, FocusSessionMode.CUSTOM)
+                    profileId = BuiltInProfiles.SLEEP_ID,
+                    mode = FocusSessionMode.CUSTOM
                 )
                 ACTION_TOGGLE_FOCUS -> FocusShortcutCommand.ToggleActiveFocus
                 else -> null
             }
-        }
-
-        private fun resolveProfileExtra(intent: Intent, fallbackId: String): String {
-            return intent.getStringExtra(EXTRA_PROFILE_ID)?.takeIf { it.isNotBlank() } ?: fallbackId
-        }
-
-        private fun resolveModeExtra(intent: Intent, fallbackMode: FocusSessionMode): FocusSessionMode {
-            val raw = intent.getStringExtra(EXTRA_SESSION_MODE) ?: return fallbackMode
-            return FocusSessionMode.entries.firstOrNull { it.name == raw } ?: fallbackMode
         }
     }
 }
