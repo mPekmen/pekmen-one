@@ -3,7 +3,9 @@ package net.pekmen.one.feature.learning
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import net.pekmen.one.core.data.CompletedSessionItem
 import net.pekmen.one.core.data.LearningRepository
 import net.pekmen.one.core.data.SaveBookRequest
 import net.pekmen.one.core.data.SaveSubjectRequest
@@ -22,6 +24,7 @@ internal class FakeLearningRepository : LearningRepository {
     private var seq = 1
 
     override fun observeSubjects(): Flow<List<LearningSubject>> = subjects
+    override fun observeTopicHistory(topicId: String): Flow<List<CompletedSessionItem>> = flowOf(emptyList())
     override fun observeBooks(subjectId: String?): Flow<List<LearningBook>> =
         books.map { list -> list.filter { subjectId == null || it.subjectId == subjectId } }
 

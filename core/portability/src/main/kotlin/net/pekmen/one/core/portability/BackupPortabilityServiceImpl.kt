@@ -51,7 +51,7 @@ class BackupPortabilityServiceImpl(
             profiles = data.profiles.map { it.toBackup() },
             subjects = data.subjects.map { it.toBackup() },
             books = data.books.map { it.toBackup() },
-            topics = data.topics.map { it.toBackup(bookIds) },
+            topics = data.topics.map { it.toBackup(bookIds, topicIds) },
             sessions = data.sessions.map { it.toBackup(subjectIds, bookIds, topicIds, taskIds) },
             segments = data.segments.map { it.toBackup() },
             tasks = data.tasks.map { it.toBackup(subjectIds) }
@@ -169,7 +169,7 @@ class BackupPortabilityServiceImpl(
             portabilityDao.upsertBooks(archive.books.map { it.toEntity() })
         }
         if (archive.topics.isNotEmpty()) {
-            portabilityDao.upsertTopics(archive.topics.map { it.toEntity() })
+            portabilityDao.upsertTopics(archive.topics.sortedBy { it.parentTopicId != null }.map { it.toEntity() })
         }
         if (archive.sessions.isNotEmpty()) {
             portabilityDao.upsertSessions(archive.sessions.map { it.toEntity() })
@@ -318,6 +318,7 @@ private fun LearningSubjectEntity.toBackup(): BackupSubject = BackupSubject(
     title = title,
     colorHex = colorHex,
     weeklyGoalMinutes = weeklyGoalMinutes,
+    dailyGoalMinutes = dailyGoalMinutes,
     sortOrder = sortOrder,
     isArchived = isArchived,
     sync = sync.toBackup()
@@ -328,6 +329,7 @@ private fun BackupSubject.toEntity(): LearningSubjectEntity = LearningSubjectEnt
     title = title,
     colorHex = colorHex,
     weeklyGoalMinutes = weeklyGoalMinutes,
+    dailyGoalMinutes = dailyGoalMinutes,
     sortOrder = sortOrder,
     isArchived = isArchived,
     sync = sync.toEntity()
@@ -359,10 +361,14 @@ private fun BackupBook.toEntity(): LearningBookEntity = LearningBookEntity(
     sync = sync.toEntity()
 )
 
-private fun LearningTopicEntity.toBackup(exportedBookIds: Set<String>): BackupTopic = BackupTopic(
+private fun LearningTopicEntity.toBackup(
+    exportedBookIds: Set<String>,
+    exportedTopicIds: Set<String>
+): BackupTopic = BackupTopic(
     id = id,
     subjectId = subjectId,
     bookId = bookId?.takeIf { it in exportedBookIds },
+    parentTopicId = parentTopicId?.takeIf { it in exportedTopicIds },
     title = title,
     status = status,
     sortOrder = sortOrder,
@@ -373,6 +379,7 @@ private fun BackupTopic.toEntity(): LearningTopicEntity = LearningTopicEntity(
     id = id,
     subjectId = subjectId,
     bookId = bookId,
+    parentTopicId = parentTopicId,
     title = title,
     status = status,
     sortOrder = sortOrder,

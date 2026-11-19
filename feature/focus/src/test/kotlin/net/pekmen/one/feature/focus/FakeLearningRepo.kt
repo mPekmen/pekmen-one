@@ -2,6 +2,7 @@ package net.pekmen.one.feature.focus
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import net.pekmen.one.core.data.CompletedSessionItem
 import net.pekmen.one.core.data.LearningRepository
 import net.pekmen.one.core.data.SaveBookRequest
 import net.pekmen.one.core.data.SaveSubjectRequest
@@ -19,6 +20,7 @@ internal class FakeLearningRepo(
     private val topics: List<LearningTopic>
 ) : LearningRepository {
     override fun observeSubjects(): Flow<List<LearningSubject>> = flowOf(subjects)
+    override fun observeTopicHistory(topicId: String): Flow<List<CompletedSessionItem>> = flowOf(emptyList())
     override fun observeBooks(subjectId: String?): Flow<List<LearningBook>> = flowOf(books)
     override fun observeTopics(subjectId: String?): Flow<List<LearningTopic>> = flowOf(topics)
     override fun observeWeeklySubjectProgress(anchorDate: LocalDate): Flow<List<SubjectWeeklyProgress>> =

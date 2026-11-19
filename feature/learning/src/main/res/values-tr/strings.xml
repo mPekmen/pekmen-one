@@ -52,4 +52,18 @@
     <string name="learning_cd_prev_page">Önceki sayfa</string>
     <string name="learning_cd_next_page">Sonraki sayfa</string>
     <string name="learning_cd_select_color">Ders rengini seç</string>
+    <string name="learning_subject_daily_goal">Günlük hedef (dakika, kapatmak için 0)</string>
+    <string name="learning_daily_goal_progress">Bugün %1$s / %2$s dk</string>
+    <string name="learning_chapters_total">Toplam bölüm</string>
+    <string name="learning_chapters_done">Tamamlanan bölüm</string>
+    <string name="learning_topic_parent">Üst konu</string>
+    <string name="learning_topic_root">Ana konu</string>
+    <string name="learning_topic_history">Odak geçmişi</string>
+    <string name="learning_topic_history_empty">Henüz tamamlanan odak oturumu yok.</string>
+    <string name="learning_topic_history_entry">%1$s · %2$s</string>
+    <string name="learning_chapters_progress">%1$s / %2$s bölüm</string>
+    <string name="learning_weekly_goal_percentage">Haftalık hedefin %1$s kadarı tamamlandı</string>
+    <string name="learning_weekly_goal_unset">Haftalık hedef yok</string>
+    <string name="learning_cd_prev_chapter">Tamamlanan bölüm sayısını azalt</string>
+    <string name="learning_cd_next_chapter">Tamamlanan bölüm sayısını artır</string>
 </resources>

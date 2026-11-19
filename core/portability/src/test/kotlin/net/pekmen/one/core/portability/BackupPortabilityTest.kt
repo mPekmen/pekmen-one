@@ -83,7 +83,7 @@ class BackupPortabilityTest {
     }
 
     @Test
-    fun `full v2 round-trip preserves M1 M2 M3 entities SyncMetadata UUIDv7 and preferences`() = runTest {
+    fun `full current round-trip preserves M1 M2 M3 entities SyncMetadata UUIDv7 and preferences`() = runTest {
         val sourceDb = newDb()
         val sourceStore = BackupTestFixtures.newDataStore(tempFolder, this, "src_prefs")
         val sourceService = BackupPortabilityServiceImpl(
@@ -94,7 +94,7 @@ class BackupPortabilityTest {
         val fixture = BackupTestFixtures.seedFullV2Fixture(sourceDb, sourceStore, ownerUserId = "owner-uuid-1")
 
         val exportedJson = sourceService.exportJsonArchive().getOrThrow()
-        assertTrue(exportedJson.contains("\"schemaVersion\": 2"))
+        assertTrue(exportedJson.contains("\"schemaVersion\": 3"))
         assertFalse(exportedJson.contains("activeOwnerUserId"))
 
         val targetDb = newDb()
@@ -108,7 +108,7 @@ class BackupPortabilityTest {
         val result = targetService.importJsonArchive(exportedJson)
         assertTrue(result is BackupImportResult.Success)
         val report = (result as BackupImportResult.Success).report
-        assertEquals(2, report.sourceSchemaVersion)
+        assertEquals(3, report.sourceSchemaVersion)
         assertEquals(2, report.profilesRestored)
         assertEquals(1, report.subjectsRestored)
         assertEquals(1, report.booksRestored)

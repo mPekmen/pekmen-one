@@ -29,6 +29,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -56,7 +57,8 @@ import java.text.NumberFormat
 fun InsightsRoute(
     viewModel: InsightsViewModel,
     modifier: Modifier = Modifier,
-    onOpenCircles: (() -> Unit)? = null
+    onOpenCircles: (() -> Unit)? = null,
+    onOpenTask: ((String) -> Unit)? = null
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -70,6 +72,8 @@ fun InsightsRoute(
         onSaveEdit = viewModel::saveEditedSession,
         onDeleteSession = viewModel::deleteSession,
         onOpenCircles = onOpenCircles,
+        onOpenTask = onOpenTask,
+        onSelectPeriod = viewModel::selectPeriod,
         modifier = modifier
     )
 }
@@ -85,7 +89,9 @@ fun InsightsScreen(
     onSaveEdit: (String, Int, Int, String, Int?, String?) -> Unit,
     onDeleteSession: (String) -> Unit,
     modifier: Modifier = Modifier,
-    onOpenCircles: (() -> Unit)? = null
+    onOpenCircles: (() -> Unit)? = null,
+    onSelectPeriod: (InsightsPeriod) -> Unit = {},
+    onOpenTask: ((String) -> Unit)? = null
 ) {
     val subjectsById = state.subjectWeeklyProgress.associate { it.subject.id to it.subject }
     val booksById = state.subjectWeeklyProgress
@@ -148,6 +154,11 @@ fun InsightsScreen(
                     WeeklySubjectGoalsCard(items = state.subjectWeeklyProgress)
                 }
             }
+            state.periodSummary?.let { period ->
+                item {
+                    InsightsPeriodCard(period, subjectsById.mapValues { it.value.title }, onSelectPeriod)
+                }
+            }
 
             if (onOpenCircles != null) {
                 item {
@@ -192,7 +203,8 @@ fun InsightsScreen(
                         item = item,
                         subject = item.session.subjectId?.let { subjectsById[it] },
                         book = item.session.bookId?.let { booksById[it] },
-                        onClick = { onOpenEdit(item) }
+                        onClick = { onOpenEdit(item) },
+                        onOpenTask = onOpenTask
                     )
                 }
             }
@@ -426,7 +438,8 @@ private fun SessionHistoryCard(
     item: CompletedSessionItem,
     subject: LearningSubject?,
     book: LearningBook?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onOpenTask: ((String) -> Unit)?
 ) {
     val context = LocalContext.current
     val session = item.session
@@ -491,6 +504,12 @@ private fun SessionHistoryCard(
             }
 
             SessionBadgesRow(session = session, onClick = onClick)
+            val taskId = session.taskId
+            if (taskId != null && onOpenTask != null) {
+                TextButton(onClick = { onOpenTask(taskId) }) {
+                    Text(stringResource(R.string.insights_open_linked_task))
+                }
+            }
         }
     }
 }

@@ -35,7 +35,9 @@ data class LearningSubjectEntity(
     @ColumnInfo(name = "is_archived")
     val isArchived: Boolean = false,
     @Embedded
-    val sync: SyncMetadataEntity
+    val sync: SyncMetadataEntity,
+    @ColumnInfo(name = "daily_goal_minutes", defaultValue = "0")
+    val dailyGoalMinutes: Int = 0
 ) {
     fun toDomain(): LearningSubject = LearningSubject(
         id = id,
@@ -43,6 +45,7 @@ data class LearningSubjectEntity(
         title = title,
         colorHex = colorHex,
         weeklyGoalMinutes = weeklyGoalMinutes,
+        dailyGoalMinutes = dailyGoalMinutes,
         sortOrder = sortOrder,
         isArchived = isArchived,
         syncStatus = SyncStatus.entries.firstOrNull { it.name == sync.syncStatus } ?: SyncStatus.LOCAL_ONLY
@@ -110,11 +113,18 @@ data class LearningBookEntity(
             parentColumns = ["id"],
             childColumns = ["subject_id"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = LearningTopicEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["parent_topic_id"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
         Index(value = ["subject_id"]),
         Index(value = ["book_id"]),
+        Index(value = ["parent_topic_id"]),
         Index(value = ["deleted_at_ms"])
     ]
 )
@@ -133,13 +143,16 @@ data class LearningTopicEntity(
     @ColumnInfo(name = "sort_order")
     val sortOrder: Int = 0,
     @Embedded
-    val sync: SyncMetadataEntity
+    val sync: SyncMetadataEntity,
+    @ColumnInfo(name = "parent_topic_id")
+    val parentTopicId: String? = null
 ) {
     fun toDomain(): LearningTopic = LearningTopic(
         id = id,
         ownerUserId = sync.ownerUserId,
         subjectId = subjectId,
         bookId = bookId,
+        parentTopicId = parentTopicId,
         title = title,
         status = TopicStatus.entries.firstOrNull { it.name == status } ?: TopicStatus.TODO,
         sortOrder = sortOrder,

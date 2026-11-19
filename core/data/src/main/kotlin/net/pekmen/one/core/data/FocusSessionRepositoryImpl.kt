@@ -53,6 +53,7 @@ class FocusSessionRepositoryImpl(
         profileDao = database.focusProfileDao(),
         learningDao = database.learningDao(),
         learningTopicDao = database.learningTopicDao(),
+        plannerTaskDao = database.plannerTaskDao(),
         outboxDao = outboxDao
     )
 
@@ -242,6 +243,9 @@ class FocusSessionRepositoryImpl(
 
             database.withTransaction {
                 val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withTransaction
+                if (active.session.sessionMode != FocusSessionMode.POMODORO.name ||
+                    active.session.currentPhase == FocusPhase.FOCUS.name
+                ) return@withTransaction
                 val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null }
                 val updatedSegments = transitions.closeOpenSegmentIfPresent(
                     active, openSeg, nowWall, nowElapsed, bootCount

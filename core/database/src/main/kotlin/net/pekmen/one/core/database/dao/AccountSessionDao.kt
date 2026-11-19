@@ -56,6 +56,18 @@ interface AccountSessionDao {
 
     @Transaction
     @Query(
+        "SELECT * FROM focus_sessions WHERE topic_id = :topicId " +
+            "AND deleted_at_ms IS NULL AND status = 'COMPLETED' " +
+            "AND ((:ownerUserId IS NULL AND owner_user_id IS NULL) OR owner_user_id = :ownerUserId) " +
+            "ORDER BY started_at_wall_ms DESC"
+    )
+    fun observeTopicHistory(
+        topicId: String,
+        ownerUserId: String?
+    ): Flow<List<FocusSessionWithProfile>>
+
+    @Transaction
+    @Query(
         "SELECT * FROM focus_sessions " +
             "WHERE deleted_at_ms IS NULL AND status = 'COMPLETED' " +
             "AND effective_day_date BETWEEN :startDate AND :endDate " +

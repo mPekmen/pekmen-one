@@ -49,7 +49,7 @@ class PekmenDatabaseMigrationTest {
     }
 
     @Test
-    fun `migrates v1 sqlite to v2 with zero data loss`() = runTest {
+    fun `migrates v1 sqlite through v3 with zero data loss`() = runTest {
         val customProfileId = UuidV7.generate(1_760_000_000_000L)
         val completedSessionId = UuidV7.generate(1_760_000_100_000L)
         val completedFocusSegId = UuidV7.generate(1_760_000_100_010L)
@@ -76,7 +76,7 @@ class PekmenDatabaseMigrationTest {
         migratedDb = db
 
         val sqlite = db.openHelper.writableDatabase
-        assertEquals(2, sqlite.version)
+        assertEquals(3, sqlite.version)
         sqlite.query("PRAGMA foreign_key_check").use { cursor ->
             assertEquals(0, cursor.count)
         }

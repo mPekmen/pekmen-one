@@ -63,4 +63,6 @@
     <string name="focus_cd_decrease_minutes">Odak dakikasını azalt</string>
     <string name="focus_cd_increase_minutes">Odak dakikasını artır</string>
     <string name="focus_error_start_failed">Başka bir aktif oturum zaten açık olduğu için başlatılamadı.</string>
+    <string name="focus_custom_break">Kısa mola ekle</string>
+    <string name="focus_daily_goal">Günlük hedef: %1$d / %2$d dk</string>
 </resources>

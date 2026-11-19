@@ -24,6 +24,9 @@ interface LearningTopicDao {
     @Query("SELECT * FROM learning_topics WHERE id = :topicId AND deleted_at_ms IS NULL LIMIT 1")
     suspend fun getTopicById(topicId: String): LearningTopicEntity?
 
+    @Query("SELECT * FROM learning_topics WHERE parent_topic_id = :parentId AND deleted_at_ms IS NULL")
+    suspend fun getActiveChildren(parentId: String): List<LearningTopicEntity>
+
     @Upsert
     suspend fun upsertTopic(topic: LearningTopicEntity)
 

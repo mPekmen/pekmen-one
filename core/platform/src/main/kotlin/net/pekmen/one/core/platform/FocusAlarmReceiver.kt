@@ -20,7 +20,11 @@ class FocusAlarmReceiver : BroadcastReceiver() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         scope.launch {
             try {
-                provider.focusTriggerHandler().handlePhaseAlarmExpired(sessionId, segmentId)
+                provider.focusTriggerHandler().handleAccountPhaseAlarm(
+                    sessionId,
+                    segmentId,
+                    intent.getStringExtra(FocusActionReceiver.EXTRA_OWNER_ID)
+                )
             } finally {
                 pendingResult.finish()
             }

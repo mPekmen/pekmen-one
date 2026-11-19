@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import net.pekmen.one.core.model.FocusPhase
@@ -16,7 +17,9 @@ import java.util.Locale
 class FocusNotificationManager(
     private val context: Context,
     private val permissionChecker: SystemPermissionChecker,
-    private val launcherActivityClass: Class<out Activity>
+    private val launcherActivityClass: Class<out Activity>,
+    private val ownerId: String? = null,
+    private val publish: (() -> Unit) -> Unit = { it() }
 ) : FocusNotificationGateway {
 
     private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
@@ -91,12 +94,12 @@ class FocusNotificationManager(
             .addAction(
                 0,
                 context.getString(R.string.notif_action_pause),
-                buildActionPendingIntent(FocusActionReceiver.ACTION_PAUSE, REQUEST_PAUSE)
+                buildActionPendingIntent(FocusActionReceiver.ACTION_PAUSE, REQUEST_PAUSE, sessionId)
             )
             .addAction(
                 0,
                 context.getString(R.string.notif_action_finish),
-                buildActionPendingIntent(FocusActionReceiver.ACTION_FINISH, REQUEST_FINISH)
+                buildActionPendingIntent(FocusActionReceiver.ACTION_FINISH, REQUEST_FINISH, sessionId)
             )
             .build()
 
@@ -158,12 +161,12 @@ class FocusNotificationManager(
             .addAction(
                 0,
                 context.getString(R.string.notif_action_resume),
-                buildActionPendingIntent(FocusActionReceiver.ACTION_RESUME, REQUEST_RESUME)
+                buildActionPendingIntent(FocusActionReceiver.ACTION_RESUME, REQUEST_RESUME, sessionId)
             )
             .addAction(
                 0,
                 context.getString(R.string.notif_action_finish),
-                buildActionPendingIntent(FocusActionReceiver.ACTION_FINISH, REQUEST_FINISH)
+                buildActionPendingIntent(FocusActionReceiver.ACTION_FINISH, REQUEST_FINISH, sessionId)
             )
             .build()
 
@@ -215,13 +218,13 @@ class FocusNotificationManager(
             builder.addAction(
                 0,
                 context.getString(R.string.notif_action_start_next),
-                buildActionPendingIntent(FocusActionReceiver.ACTION_START_NEXT, REQUEST_START_NEXT)
+                buildActionPendingIntent(FocusActionReceiver.ACTION_START_NEXT, REQUEST_START_NEXT, sessionId)
             )
         }
         builder.addAction(
             0,
             context.getString(R.string.notif_action_finish),
-            buildActionPendingIntent(FocusActionReceiver.ACTION_FINISH, REQUEST_FINISH)
+            buildActionPendingIntent(FocusActionReceiver.ACTION_FINISH, REQUEST_FINISH, sessionId)
         )
 
         postSafely(NOTIFICATION_ID_ONGOING, builder.build())
@@ -254,7 +257,7 @@ class FocusNotificationManager(
         postSafely(NOTIFICATION_ID_TRANSITION_ALERT, notification)
     }
 
-    override fun cancelAllSessionNotifications() {
+    override fun cancelAllSessionNotifications() = publish {
         notificationManager.cancel(NOTIFICATION_ID_ONGOING)
         notificationManager.cancel(NOTIFICATION_ID_TRANSITION_ALERT)
     }
@@ -262,7 +265,7 @@ class FocusNotificationManager(
     @SuppressLint("MissingPermission")
     private fun postSafely(id: Int, notification: android.app.Notification) {
         if (!permissionChecker.hasNotificationPermission()) return
-        notificationManager.notify(id, notification)
+        publish { notificationManager.notify(id, notification) }
     }
 
     private fun buildPublicVersion(): android.app.Notification {
@@ -285,9 +288,12 @@ class FocusNotificationManager(
         )
     }
 
-    private fun buildActionPendingIntent(action: String, requestCode: Int): PendingIntent {
+    private fun buildActionPendingIntent(action: String, requestCode: Int, sessionId: String): PendingIntent {
         val intent = Intent(context, FocusActionReceiver::class.java).apply {
             this.action = action
+            data = Uri.fromParts("pekmen-focus", "${ownerId.orEmpty()}/$sessionId", null)
+            putExtra(FocusActionReceiver.EXTRA_OWNER_ID, ownerId)
+            putExtra(FocusActionReceiver.EXTRA_SESSION_ID, sessionId)
         }
         return PendingIntent.getBroadcast(
             context,

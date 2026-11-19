@@ -59,4 +59,20 @@
     <string name="planner_cd_complete_task">Mark task completed</string>
     <string name="planner_cd_reopen_task">Reopen task</string>
     <string name="planner_cd_delete_task">Delete task</string>
+    <string name="planner_display_agenda">Agenda</string>
+    <string name="planner_display_week">Week</string>
+    <string name="planner_display_history">History</string>
+    <string name="planner_previous_week">Previous week</string>
+    <string name="planner_next_week">Next week</string>
+    <string name="planner_week_range">%1$s – %2$s</string>
+    <string name="planner_week_day_empty">Nothing scheduled</string>
+    <string name="planner_history_empty">No completed or cancelled tasks</string>
+    <string name="planner_status_open">Open</string>
+    <string name="planner_status_completed">Completed</string>
+    <string name="planner_status_cancelled">Cancelled</string>
+    <string name="planner_display_menu">Change view, current view %1$s</string>
+    <string name="planner_history_all_statuses">All statuses</string>
+    <string name="planner_history_all_dates">All dates</string>
+    <string name="planner_history_7_days">Last 7 days</string>
+    <string name="planner_history_30_days">Last 30 days</string>
 </resources>

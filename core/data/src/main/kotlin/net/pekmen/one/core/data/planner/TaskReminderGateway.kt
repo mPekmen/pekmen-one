@@ -13,19 +13,20 @@ interface TaskReminderGateway {
 }
 
 class PlatformTaskReminderGateway(
-    private val scheduler: TaskReminderScheduler
+    private val scheduler: TaskReminderScheduler,
+    private val publish: (() -> Unit) -> Unit = { it() }
 ) : TaskReminderGateway {
 
     override fun scheduleReminder(taskId: String, title: String, triggerAtWallMs: Long) {
-        scheduler.scheduleReminder(taskId = taskId, title = title, triggerAtWallMs = triggerAtWallMs)
+        publish { scheduler.scheduleReminder(taskId = taskId, title = title, triggerAtWallMs = triggerAtWallMs) }
     }
 
     override fun cancelReminder(taskId: String) {
-        scheduler.cancelReminder(taskId = taskId)
+        publish { scheduler.cancelReminder(taskId = taskId) }
     }
 
     override fun showReminderNotification(taskId: String, title: String) {
-        scheduler.showReminderNotification(taskId = taskId, title = title)
+        publish { scheduler.showReminderNotification(taskId = taskId, title = title) }
     }
 }
 

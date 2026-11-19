@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -40,12 +41,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import net.pekmen.one.core.data.CompletedSessionItem
+import net.pekmen.one.core.designsystem.format.PekmenFormatters
 import net.pekmen.one.core.designsystem.R as DesignR
 import net.pekmen.one.core.designsystem.icon.PekmenIcons
 import net.pekmen.one.core.model.LearningBook
@@ -68,13 +72,14 @@ fun SubjectEditorSheet(
     existing: LearningSubject?,
     errorMessageRes: Int?,
     onDismiss: () -> Unit,
-    onSave: (existingId: String?, title: String, colorHex: Long, weeklyGoalMinutes: Int) -> Unit,
+    onSave: (existingId: String?, title: String, colorHex: Long, weeklyGoalMinutes: Int, dailyGoalMinutes: Int) -> Unit,
     onDelete: (String) -> Unit
 ) {
     var title by remember(existing?.id) { mutableStateOf(existing?.title.orEmpty()) }
     var goalText by remember(existing?.id) {
         mutableStateOf((existing?.weeklyGoalMinutes ?: 150).toString())
     }
+    var dailyGoal by remember(existing?.id) { mutableStateOf((existing?.dailyGoalMinutes ?: 0).toString()) }
     var selectedColor by remember(existing?.id) {
         mutableLongStateOf(existing?.colorHex ?: SUBJECT_PALETTE_COLORS.first())
     }
@@ -130,6 +135,7 @@ fun SubjectEditorSheet(
                 selectedColor = selectedColor,
                 onSelect = { selectedColor = it }
             )
+            LearningNumberField(dailyGoal, { dailyGoal = it }, R.string.learning_subject_daily_goal)
 
             if (existing != null) {
                 DeleteConfirmButton(
@@ -147,7 +153,8 @@ fun SubjectEditorSheet(
                         existing?.id,
                         title,
                         selectedColor,
-                        goalText.toIntOrNull() ?: 0
+                        goalText.toIntOrNull() ?: 0,
+                        dailyGoal.toIntOrNull() ?: 0
                     )
                 }
             )
@@ -169,7 +176,9 @@ fun BookEditorSheet(
         title: String,
         author: String?,
         totalPages: Int,
-        currentPage: Int
+        currentPage: Int,
+        totalChapters: Int,
+        completedChapters: Int
     ) -> Unit,
     onDelete: (String) -> Unit
 ) {
@@ -182,6 +191,8 @@ fun BookEditorSheet(
         mutableStateOf((existing?.currentPage ?: 0).toString())
     }
     var confirmDelete by remember(existing?.id) { mutableStateOf(false) }
+    var totalChapters by remember(existing?.id) { mutableStateOf((existing?.totalChapters ?: 0).toString()) }
+    var completedChapters by remember(existing?.id) { mutableStateOf((existing?.completedChapters ?: 0).toString()) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -229,24 +240,24 @@ fun BookEditorSheet(
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = totalPagesText,
-                    onValueChange = { if (it.length <= 5 && it.all(Char::isDigit)) totalPagesText = it },
-                    label = { Text(text = stringResource(R.string.learning_book_total_pages_label)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
+                LearningNumberField(
+                    totalPagesText, { totalPagesText = it }, R.string.learning_book_total_pages_label,
+                    Modifier.weight(1f)
                 )
-                OutlinedTextField(
-                    value = currentPageText,
-                    onValueChange = { if (it.length <= 5 && it.all(Char::isDigit)) currentPageText = it },
-                    label = { Text(text = stringResource(R.string.learning_book_current_page_label)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
+                LearningNumberField(
+                    currentPageText, { currentPageText = it }, R.string.learning_book_current_page_label,
+                    Modifier.weight(1f)
                 )
             }
 
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                LearningNumberField(
+                    totalChapters, { totalChapters = it }, R.string.learning_chapters_total, Modifier.weight(1f)
+                )
+                LearningNumberField(
+                    completedChapters, { completedChapters = it }, R.string.learning_chapters_done, Modifier.weight(1f)
+                )
+            }
             if (existing != null) {
                 DeleteConfirmButton(
                     confirmDelete = confirmDelete,
@@ -265,7 +276,9 @@ fun BookEditorSheet(
                         title,
                         author.ifBlank { null },
                         totalPagesText.toIntOrNull() ?: 0,
-                        currentPageText.toIntOrNull() ?: 0
+                        currentPageText.toIntOrNull() ?: 0,
+                        totalChapters.toIntOrNull() ?: 0,
+                        completedChapters.toIntOrNull() ?: 0
                     )
                 }
             )
@@ -279,6 +292,7 @@ fun BookEditorSheet(
 fun TopicEditorSheet(
     subjectId: String,
     availableBooks: List<LearningBook>,
+    availableTopics: List<LearningTopic>,
     existing: LearningTopic?,
     errorMessageRes: Int?,
     onDismiss: () -> Unit,
@@ -287,12 +301,21 @@ fun TopicEditorSheet(
         subjectId: String,
         bookId: String?,
         title: String,
-        status: TopicStatus
+        status: TopicStatus,
+        parentTopicId: String?
     ) -> Unit,
-    onDelete: (String) -> Unit
+    onDelete: (String) -> Unit,
+    onViewHistory: (LearningTopic) -> Unit
 ) {
     var title by remember(existing?.id) { mutableStateOf(existing?.title.orEmpty()) }
     var selectedBookId by remember(existing?.id) { mutableStateOf(existing?.bookId) }
+    var selectedParent by remember(existing?.id) { mutableStateOf(existing?.parentTopicId) }
+    val canMove = existing == null || availableTopics.none { it.parentTopicId == existing.id }
+    val validParents = if (canMove) availableTopics.filter { candidate ->
+        candidate.id != existing?.id && candidate.parentTopicId == null &&
+            (candidate.bookId == null || candidate.bookId == selectedBookId)
+    } else emptyList()
+    val resolvedParent = selectedParent?.takeIf { id -> validParents.any { it.id == id } }
     var selectedStatus by remember(existing?.id) { mutableStateOf(existing?.status ?: TopicStatus.TODO) }
     var confirmDelete by remember(existing?.id) { mutableStateOf(false) }
 
@@ -343,6 +366,7 @@ fun TopicEditorSheet(
                     item {
                         FilterChip(
                             selected = selectedBookId == null,
+                            enabled = canMove,
                             onClick = { selectedBookId = null },
                             label = { Text(text = stringResource(R.string.learning_topic_book_none)) },
                             modifier = Modifier.heightIn(min = 48.dp)
@@ -351,6 +375,7 @@ fun TopicEditorSheet(
                     items(availableBooks, key = { it.id }) { book ->
                         FilterChip(
                             selected = selectedBookId == book.id,
+                            enabled = canMove,
                             onClick = { selectedBookId = book.id },
                             label = { Text(text = book.title) },
                             modifier = Modifier.heightIn(min = 48.dp)
@@ -359,6 +384,9 @@ fun TopicEditorSheet(
                 }
             }
 
+            if (validParents.isNotEmpty()) {
+                TopicParentSelector(validParents, resolvedParent) { selectedParent = it }
+            }
             Text(
                 text = stringResource(R.string.learning_topic_status_label),
                 style = MaterialTheme.typography.labelLarge,
@@ -376,6 +404,9 @@ fun TopicEditorSheet(
             }
 
             if (existing != null) {
+                TextButton(onClick = { onViewHistory(existing) }) {
+                    Text(stringResource(R.string.learning_topic_history))
+                }
                 DeleteConfirmButton(
                     confirmDelete = confirmDelete,
                     onClick = {
@@ -387,10 +418,61 @@ fun TopicEditorSheet(
             SheetActionButtons(
                 onDismiss = onDismiss,
                 onSave = {
-                    onSave(existing?.id, subjectId, selectedBookId, title, selectedStatus)
+                    onSave(existing?.id, subjectId, selectedBookId, title, selectedStatus, resolvedParent)
                 }
             )
             Spacer(modifier = Modifier.height(4.dp))
+        }
+    }
+}
+
+@Composable
+private fun LearningNumberField(value: String, change: (String) -> Unit, label: Int, modifier: Modifier = Modifier) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { if (it.length <= 5 && it.all(Char::isDigit)) change(it) },
+        label = { Text(stringResource(label)) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun TopicParentSelector(topics: List<LearningTopic>, selectedId: String?, select: (String?) -> Unit) {
+    Text(stringResource(R.string.learning_topic_parent), style = MaterialTheme.typography.labelLarge)
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        item {
+            FilterChip(selectedId == null, { select(null) }, { Text(stringResource(R.string.learning_topic_root)) })
+        }
+        items(topics, key = { it.id }) { topic ->
+            FilterChip(selectedId == topic.id, { select(topic.id) }, { Text(topic.title) })
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun TopicHistorySheet(topic: LearningTopic, entries: List<CompletedSessionItem>, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val locale = context.resources.configuration.locales[0]
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Text(topic.title, style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(R.string.learning_topic_history), style = MaterialTheme.typography.titleMedium)
+            }
+            if (entries.isEmpty()) item { Text(stringResource(R.string.learning_topic_history_empty)) }
+            items(entries, key = { it.session.id }) { entry ->
+                val session = entry.session
+                val date = PekmenFormatters.formatMediumDate(session.effectiveDayDate, locale)
+                val duration = PekmenFormatters.formatHumanDuration(context, session.actualFocusSec, locale)
+                Text(stringResource(R.string.learning_topic_history_entry, date, duration))
+                session.reflectionNote?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+            }
         }
     }
 }

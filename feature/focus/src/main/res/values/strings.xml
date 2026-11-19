@@ -63,4 +63,6 @@
     <string name="focus_cd_decrease_minutes">Decrease focus minutes</string>
     <string name="focus_cd_increase_minutes">Increase focus minutes</string>
     <string name="focus_error_start_failed">Could not start session because another session is already active.</string>
+    <string name="focus_custom_break">Add a short break</string>
+    <string name="focus_daily_goal">Daily goal: %1$d / %2$d min</string>
 </resources>

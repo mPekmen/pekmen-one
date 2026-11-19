@@ -13,7 +13,8 @@ data class SaveSubjectRequest(
     val title: String,
     val colorHex: Long,
     val weeklyGoalMinutes: Int,
-    val sortOrder: Int? = null
+    val sortOrder: Int? = null,
+    val dailyGoalMinutes: Int? = null
 )
 
 data class SaveBookRequest(
@@ -33,7 +34,8 @@ data class SaveTopicRequest(
     val bookId: String? = null,
     val title: String,
     val status: TopicStatus = TopicStatus.TODO,
-    val sortOrder: Int? = null
+    val sortOrder: Int? = null,
+    val parentTopicId: String? = null
 )
 
 interface LearningRepository {
@@ -41,6 +43,7 @@ interface LearningRepository {
     fun observeBooks(subjectId: String? = null): Flow<List<LearningBook>>
     fun observeTopics(subjectId: String? = null): Flow<List<LearningTopic>>
     fun observeWeeklySubjectProgress(anchorDate: LocalDate): Flow<List<SubjectWeeklyProgress>>
+    fun observeTopicHistory(topicId: String): Flow<List<CompletedSessionItem>>
 
     suspend fun saveSubject(request: SaveSubjectRequest): Result<LearningSubject>
     suspend fun softDeleteSubject(subjectId: String): Result<Unit>

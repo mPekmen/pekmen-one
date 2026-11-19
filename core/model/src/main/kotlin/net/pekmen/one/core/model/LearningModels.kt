@@ -14,7 +14,8 @@ data class LearningSubject(
     val weeklyGoalMinutes: Int,
     val sortOrder: Int = 0,
     val isArchived: Boolean = false,
-    val syncStatus: SyncStatus = SyncStatus.LOCAL_ONLY
+    val syncStatus: SyncStatus = SyncStatus.LOCAL_ONLY,
+    val dailyGoalMinutes: Int = 0
 )
 
 data class LearningBook(
@@ -42,7 +43,8 @@ data class LearningTopic(
     val title: String,
     val status: TopicStatus = TopicStatus.TODO,
     val sortOrder: Int = 0,
-    val syncStatus: SyncStatus = SyncStatus.LOCAL_ONLY
+    val syncStatus: SyncStatus = SyncStatus.LOCAL_ONLY,
+    val parentTopicId: String? = null
 )
 
 data class SubjectWeeklyProgress(
@@ -50,7 +52,8 @@ data class SubjectWeeklyProgress(
     val netFocusSecondsThisWeek: Long,
     val completedSessionCount: Int,
     val books: List<LearningBook>,
-    val topics: List<LearningTopic>
+    val topics: List<LearningTopic>,
+    val netFocusSecondsToday: Long = 0
 ) {
     val goalProgressFraction: Float
         get() {

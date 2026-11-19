@@ -32,7 +32,10 @@ class TaskReminderReceiver : BroadcastReceiver() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         scope.launch {
             try {
-                provider.taskReminderTriggerHandler().handleTaskReminderFired(taskId)
+                provider.taskReminderTriggerHandler().handleAccountReminderFired(
+                    taskId,
+                    intent.getStringExtra(EXTRA_OWNER_ID)
+                )
             } finally {
                 pendingResult?.finish()
             }
@@ -43,12 +46,14 @@ class TaskReminderReceiver : BroadcastReceiver() {
         const val ACTION_TASK_REMINDER = "net.pekmen.one.action.TASK_REMINDER"
         const val EXTRA_TASK_ID = "extra_task_id"
         const val EXTRA_TASK_TITLE = "extra_task_title"
+        const val EXTRA_OWNER_ID = "extra_task_owner_id"
     }
 }
 
 interface TaskReminderTriggerHandler {
     suspend fun handleTaskReminderFired(taskId: String)
     suspend fun handleBootOrPackageReplaced()
+    suspend fun handleAccountReminderFired(taskId: String, ownerId: String?) = handleTaskReminderFired(taskId)
 }
 
 interface TaskReminderTriggerProvider {

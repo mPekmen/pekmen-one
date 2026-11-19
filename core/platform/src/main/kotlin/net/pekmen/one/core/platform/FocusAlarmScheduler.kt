@@ -7,7 +7,8 @@ import android.content.Intent
 
 class FocusAlarmScheduler(
     private val context: Context,
-    private val permissionChecker: SystemPermissionChecker
+    private val permissionChecker: SystemPermissionChecker,
+    private val ownerId: String? = null
 ) : FocusAlarmGateway {
 
     private val alarmManager: AlarmManager?
@@ -62,6 +63,7 @@ class FocusAlarmScheduler(
             action = FocusAlarmReceiver.ACTION_PHASE_EXPIRED
             putExtra(FocusAlarmReceiver.EXTRA_SESSION_ID, sessionId)
             putExtra(FocusAlarmReceiver.EXTRA_SEGMENT_ID, segmentId)
+            putExtra(FocusActionReceiver.EXTRA_OWNER_ID, ownerId)
         }
         return PendingIntent.getBroadcast(
             context,

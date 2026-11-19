@@ -52,7 +52,11 @@ data class UserPreferences(
     val defaultCustomMinutes: Int = 45,
     val activeOwnerUserId: String? = null,
     val zenIntegrationEnabled: Boolean = false,
-    val routineKeywordEnabled: Boolean = false
+    val routineKeywordEnabled: Boolean = false,
+    val customBreakEnabled: Boolean = false,
+    val dailyGoalMinutes: Int = 0,
+    val weeklyGoalMinutes: Int = 0,
+    val preferredProfileIds: Set<String> = emptySet()
 )
 
 data class FocusProfile(

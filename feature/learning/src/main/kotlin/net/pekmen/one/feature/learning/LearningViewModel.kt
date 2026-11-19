@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.pekmen.one.core.data.LearningRepository
@@ -31,6 +32,7 @@ sealed interface LearningEditorModal {
         val availableBooks: List<LearningBook>,
         val existing: LearningTopic? = null
     ) : LearningEditorModal
+    data class TopicHistory(val topic: LearningTopic) : LearningEditorModal
 }
 
 data class LearningUiState(
@@ -50,6 +52,11 @@ class LearningViewModel(
     private val selectedSubjectId = MutableStateFlow<String?>(null)
     private val editorModal = MutableStateFlow<LearningEditorModal?>(null)
     private val errorRes = MutableStateFlow<Int?>(null)
+
+    val topicHistory = editorModal.flatMapLatest { modal ->
+        if (modal is LearningEditorModal.TopicHistory) learningRepository.observeTopicHistory(modal.topic.id)
+        else flowOf(emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private val weeklyProgressFlow = preferencesRepository.preferences.flatMapLatest { prefs ->
         val effectiveToday = EffectiveDayCalculator.effectiveDateFor(
@@ -135,14 +142,25 @@ class LearningViewModel(
         errorRes.value = null
     }
 
-    fun saveSubject(existingId: String?, title: String, colorHex: Long, weeklyGoalMinutes: Int) {
+    fun openTopicHistory(topic: LearningTopic) {
+        editorModal.value = LearningEditorModal.TopicHistory(topic)
+    }
+
+    fun saveSubject(
+        existingId: String?,
+        title: String,
+        colorHex: Long,
+        weeklyGoalMinutes: Int,
+        dailyGoalMinutes: Int? = null
+    ) {
         viewModelScope.launch {
             val result = learningRepository.saveSubject(
                 SaveSubjectRequest(
                     existingId = existingId,
                     title = title,
                     colorHex = colorHex,
-                    weeklyGoalMinutes = weeklyGoalMinutes
+                    weeklyGoalMinutes = weeklyGoalMinutes,
+                    dailyGoalMinutes = dailyGoalMinutes
                 )
             )
             if (result.isSuccess) {
@@ -168,7 +186,9 @@ class LearningViewModel(
         title: String,
         author: String?,
         totalPages: Int,
-        currentPage: Int
+        currentPage: Int,
+        totalChapters: Int = 0,
+        completedChapters: Int = 0
     ) {
         viewModelScope.launch {
             val result = learningRepository.saveBook(
@@ -178,7 +198,9 @@ class LearningViewModel(
                     title = title,
                     author = author,
                     totalPages = totalPages,
-                    currentPage = currentPage
+                    currentPage = currentPage,
+                    totalChapters = totalChapters,
+                    completedChapters = completedChapters
                 )
             )
             if (result.isSuccess) {
@@ -192,8 +214,13 @@ class LearningViewModel(
 
     fun stepBookPage(book: LearningBook, delta: Int) {
         viewModelScope.launch {
-            val nextPage = (book.currentPage + delta).coerceAtLeast(0)
-            learningRepository.updateBookProgress(bookId = book.id, currentPage = nextPage)
+            if (book.totalPages == 0 && book.totalChapters > 0) {
+                val nextChapter = (book.completedChapters + delta).coerceIn(0, book.totalChapters)
+                learningRepository.updateBookProgress(book.id, book.currentPage, nextChapter)
+            } else {
+                val nextPage = (book.currentPage + delta).coerceAtLeast(0)
+                learningRepository.updateBookProgress(bookId = book.id, currentPage = nextPage)
+            }
         }
     }
 
@@ -209,7 +236,8 @@ class LearningViewModel(
         subjectId: String,
         bookId: String?,
         title: String,
-        status: TopicStatus
+        status: TopicStatus,
+        parentTopicId: String? = null
     ) {
         viewModelScope.launch {
             val result = learningRepository.saveTopic(
@@ -218,7 +246,8 @@ class LearningViewModel(
                     subjectId = subjectId,
                     bookId = bookId,
                     title = title,
-                    status = status
+                    status = status,
+                    parentTopicId = parentTopicId
                 )
             )
             if (result.isSuccess) {

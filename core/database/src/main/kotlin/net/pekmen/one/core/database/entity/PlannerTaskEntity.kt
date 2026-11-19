@@ -57,6 +57,7 @@ data class PlannerTaskEntity(
         status = TaskStatus.entries.firstOrNull { it.name == status } ?: TaskStatus.OPEN,
         completedAtWallMs = completedAtWallMs,
         priority = priority,
-        syncStatus = SyncStatus.entries.firstOrNull { it.name == sync.syncStatus } ?: SyncStatus.LOCAL_ONLY
+        syncStatus = SyncStatus.entries.firstOrNull { it.name == sync.syncStatus } ?: SyncStatus.LOCAL_ONLY,
+        lastUpdatedWallMs = sync.clientUpdatedAtMs
     )
 }

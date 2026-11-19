@@ -26,6 +26,7 @@ import net.pekmen.one.core.database.entity.SocialCircleMembershipEntity
 import net.pekmen.one.core.database.entity.SocialMemberSummaryEntity
 import net.pekmen.one.core.database.entity.SyncCursorEntity
 import net.pekmen.one.core.database.entity.SyncOutboxEntity
+import net.pekmen.one.core.model.AccountId
 
 @Database(
     entities = [
@@ -42,7 +43,7 @@ import net.pekmen.one.core.database.entity.SyncOutboxEntity
         SocialCircleMembershipEntity::class,
         SocialMemberSummaryEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class PekmenDatabase : RoomDatabase() {
@@ -60,14 +61,19 @@ abstract class PekmenDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME = "pekmen_one.db"
 
-        fun create(context: Context): PekmenDatabase {
+        fun create(context: Context): PekmenDatabase = open(context, DATABASE_NAME)
+
+        fun forAccount(context: Context, account: AccountId): PekmenDatabase =
+            open(context, "pekmen_one_${account.value}.db")
+
+        private fun open(context: Context, name: String): PekmenDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 PekmenDatabase::class.java,
-                DATABASE_NAME
+                name
             )
                 .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
-                .addMigrations(PekmenMigrations.MIGRATION_1_2)
+                .addMigrations(PekmenMigrations.MIGRATION_1_2, PekmenMigrations.MIGRATION_2_3)
                 .build()
         }
 
@@ -77,7 +83,7 @@ abstract class PekmenDatabase : RoomDatabase() {
                 PekmenDatabase::class.java
             )
                 .allowMainThreadQueries()
-                .addMigrations(PekmenMigrations.MIGRATION_1_2)
+                .addMigrations(PekmenMigrations.MIGRATION_1_2, PekmenMigrations.MIGRATION_2_3)
                 .build()
         }
 
@@ -89,7 +95,7 @@ abstract class PekmenDatabase : RoomDatabase() {
             )
                 .setJournalMode(JournalMode.TRUNCATE)
                 .allowMainThreadQueries()
-                .addMigrations(PekmenMigrations.MIGRATION_1_2)
+                .addMigrations(PekmenMigrations.MIGRATION_1_2, PekmenMigrations.MIGRATION_2_3)
                 .build()
         }
     }

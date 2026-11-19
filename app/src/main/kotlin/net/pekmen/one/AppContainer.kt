@@ -2,7 +2,9 @@ package net.pekmen.one
 
 import android.content.ComponentName
 import android.content.Context
+import android.app.NotificationManager
 import kotlinx.coroutines.flow.first
+import net.pekmen.one.account.PersonalAccountStorage
 import net.pekmen.one.core.cloud.CirclesRepository
 import net.pekmen.one.core.cloud.CloudAccountRepository
 import net.pekmen.one.core.cloud.CloudRlsGateProvider
@@ -15,6 +17,7 @@ import net.pekmen.one.core.data.FocusSessionRepository
 import net.pekmen.one.core.data.FocusSessionRepositoryImpl
 import net.pekmen.one.core.data.LearningRepository
 import net.pekmen.one.core.data.LearningRepositoryImpl
+import net.pekmen.one.core.data.SaveSubjectRequest
 import net.pekmen.one.core.data.SystemDiagnosticsRepository
 import net.pekmen.one.core.data.SystemDiagnosticsRepositoryImpl
 import net.pekmen.one.core.data.UserPreferencesRepository
@@ -32,6 +35,7 @@ import net.pekmen.one.core.model.FocusProfile
 import net.pekmen.one.core.model.FocusSessionStatus
 import net.pekmen.one.core.platform.AndroidProfileNameProvider
 import net.pekmen.one.core.platform.FocusAlarmScheduler
+import net.pekmen.one.core.platform.FocusAlarmGateway
 import net.pekmen.one.core.platform.FocusNotificationManager
 import net.pekmen.one.core.platform.FocusTriggerHandler
 import net.pekmen.one.core.platform.FocusZenTileGateway
@@ -52,29 +56,43 @@ import net.pekmen.one.core.portability.BackupPortabilityServiceImpl
  * Application-scoped dependency composition root.
  * Feature modules never depend on this class; they receive narrow interfaces.
  */
-class AppContainer(context: Context) {
+class AppContainer internal constructor(context: Context, private val storage: PersonalAccountStorage? = null) {
     private val appContext = context.applicationContext
+    private val effectLock = Any()
+    private var effectsEnabled = storage == null
 
     private val timeProvider = SystemTimeProvider(appContext)
     private val permissionChecker = SystemPermissionChecker(appContext)
-    private val database: PekmenDatabase by lazy { PekmenDatabase.create(appContext) }
-    private val userPreferencesDataStore: UserPreferencesDataStore by lazy {
-        UserPreferencesDataStore(appContext)
+    private val database: PekmenDatabase by lazy { storage?.database ?: PekmenDatabase.create(appContext) }
+    internal val userPreferencesDataStore: UserPreferencesDataStore by lazy {
+        storage?.preferences ?: UserPreferencesDataStore(appContext)
     }
 
     private val notificationManager: FocusNotificationManager by lazy {
         FocusNotificationManager(
             context = appContext,
             permissionChecker = permissionChecker,
-            launcherActivityClass = MainActivity::class.java
+            launcherActivityClass = MainActivity::class.java,
+            ownerId = storage?.accountId?.value,
+            publish = ::personalEffect
         )
     }
 
     private val alarmScheduler: FocusAlarmScheduler by lazy {
         FocusAlarmScheduler(
             context = appContext,
-            permissionChecker = permissionChecker
+            permissionChecker = permissionChecker,
+            ownerId = storage?.accountId?.value
         )
+    }
+
+    private val accountAlarmGateway: FocusAlarmGateway by lazy {
+        object : FocusAlarmGateway by alarmScheduler {
+            override fun schedulePhaseEnd(sessionId: String, segmentId: String, triggerAtElapsedMs: Long) =
+                personalEffect { alarmScheduler.schedulePhaseEnd(sessionId, segmentId, triggerAtElapsedMs) }
+
+            override fun cancelPhaseEnd() = personalEffect { alarmScheduler.cancelPhaseEnd() }
+        }
     }
 
     private val profileNameProvider by lazy { AndroidProfileNameProvider(appContext) }
@@ -100,7 +118,7 @@ class AppContainer(context: Context) {
                 profile: FocusProfile?,
                 status: FocusSessionStatus?,
                 phase: FocusPhase?
-            ) {
+            ) = personalEffect {
                 zenRuleManager.syncForSessionState(
                     zenIntegrationEnabled = zenIntegrationEnabled,
                     profile = profile,
@@ -110,7 +128,7 @@ class AppContainer(context: Context) {
                 FocusQuickSettingsTileService.requestTileUpdate(appContext)
             }
 
-            override fun deactivate() {
+            override fun deactivate() = personalEffect {
                 zenRuleManager.deactivateOwnedRule()
                 FocusQuickSettingsTileService.requestTileUpdate(appContext)
             }
@@ -138,7 +156,7 @@ class AppContainer(context: Context) {
             preferencesDataStore = userPreferencesDataStore,
             timeProvider = timeProvider,
             notificationGateway = notificationManager,
-            alarmGateway = alarmScheduler,
+            alarmGateway = accountAlarmGateway,
             profileNameProvider = profileNameProvider,
             zenTileGateway = zenTileGateway
         )
@@ -153,11 +171,19 @@ class AppContainer(context: Context) {
         )
     }
 
-    val learningRepository: LearningRepository by lazy {
+    private val learningData: LearningRepositoryImpl by lazy {
         LearningRepositoryImpl(
             database = database,
             preferencesDataStore = userPreferencesDataStore,
             timeProvider = timeProvider
+        )
+    }
+    val learningRepository: LearningRepository get() = learningData
+
+    internal suspend fun ensureFirstLesson(id: String, title: String, weeklyGoalMinutes: Int) {
+        learningData.ensureFirstSubject(
+            id,
+            SaveSubjectRequest(title = title, colorHex = 0xFF8B7CF6, weeklyGoalMinutes = weeklyGoalMinutes)
         )
     }
 
@@ -201,7 +227,8 @@ class AppContainer(context: Context) {
         TaskReminderScheduler(
             context = appContext,
             permissionChecker = permissionChecker,
-            launcherActivityClass = MainActivity::class.java
+            launcherActivityClass = MainActivity::class.java,
+            ownerId = storage?.accountId?.value
         )
     }
 
@@ -218,7 +245,7 @@ class AppContainer(context: Context) {
             database = database,
             preferencesDataStore = userPreferencesDataStore,
             timeProvider = timeProvider,
-            reminderGateway = PlatformTaskReminderGateway(taskReminderScheduler),
+            reminderGateway = PlatformTaskReminderGateway(taskReminderScheduler, ::personalEffect),
             calendarReader = calendarInstancesReader
         )
     }
@@ -253,4 +280,25 @@ class AppContainer(context: Context) {
 
     val circlesRepository: CirclesRepository
         get() = cloudSlice.circlesRepository
+
+    internal fun authorizePlatformEffects() = synchronized(effectLock) { effectsEnabled = true }
+
+    internal suspend fun retirePlatformEffects() {
+        synchronized(effectLock) {
+            effectsEnabled = false
+            alarmScheduler.cancelPhaseEnd()
+            appContext.getSystemService(NotificationManager::class.java)?.cancelAll()
+            zenRuleManager.deactivateOwnedRule()
+            FocusQuickSettingsTileService.requestTileUpdate(appContext)
+        }
+        val owner = storage?.accountId ?: return
+        database.plannerTaskDao().getPendingReminderTasksByOwner(Long.MIN_VALUE, owner.value)
+            .forEach { taskReminderScheduler.cancelReminder(it.id) }
+    }
+
+    private fun personalEffect(action: () -> Unit) {
+        synchronized(effectLock) {
+            if (effectsEnabled) action()
+        }
+    }
 }

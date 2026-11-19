@@ -24,7 +24,8 @@ data class PlannerTask(
     val status: TaskStatus = TaskStatus.OPEN,
     val completedAtWallMs: Long? = null,
     val priority: Int = 1,
-    val syncStatus: SyncStatus = SyncStatus.LOCAL_ONLY
+    val syncStatus: SyncStatus = SyncStatus.LOCAL_ONLY,
+    val lastUpdatedWallMs: Long = 0
 )
 
 data class ExternalCalendarItem(

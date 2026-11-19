@@ -4,6 +4,17 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application>
+        <activity android:name=".MainActivity">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="${authRedirectHost}"
+                    android:path="/auth/pekmen-one" />
+            </intent-filter>
+        </activity>
         <service
             android:name="net.pekmen.one.core.cloud.sync.SyncJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"

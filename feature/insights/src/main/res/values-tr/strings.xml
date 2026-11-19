@@ -45,4 +45,19 @@
     <string name="insights_circles_card_title">Özel Çemberler</string>
     <string name="insights_circles_card_body">Notlarınızı, kitaplarınızı ve görevlerinizi gizli tutarak küçük davetli çalışma gruplarıyla isteğe bağlı odak toplamlarını paylaşın.</string>
     <string name="insights_circles_open_button">Özel Çemberleri Aç</string>
+    <string name="insights_period_title">Dönem analizi</string>
+    <string name="insights_period_day">Bugün</string>
+    <string name="insights_period_week">Bu hafta</string>
+    <string name="insights_period_month">Bu ay</string>
+    <string name="insights_period_dates">%1$s – %2$s</string>
+    <string name="insights_period_totals">Odak %1$s · Mola %2$s · %3$d oturum</string>
+    <string name="insights_period_goal">Hedef: %1$d / %2$d dk</string>
+    <string name="insights_period_row">%1$s · %2$s</string>
+    <string name="insights_category_study">Ders</string>
+    <string name="insights_category_work">İş</string>
+    <string name="insights_category_sleep">Uyku</string>
+    <string name="insights_category_personal">Kişisel</string>
+    <string name="insights_category_custom">Özel profiller</string>
+    <string name="insights_chart_day">%1$s: %2$s odak, %3$s mola</string>
+    <string name="insights_open_linked_task">Bağlı görevi aç</string>
 </resources>

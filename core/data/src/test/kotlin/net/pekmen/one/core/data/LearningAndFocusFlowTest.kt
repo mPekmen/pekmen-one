@@ -100,13 +100,35 @@ class LearningAndFocusFlowTest {
             assertEquals(1, reopenedProgress.size)
             assertEquals("Almanca B2", reopenedProgress.first().subject.title)
             assertEquals(1500L, reopenedProgress.first().netFocusSecondsThisWeek)
+            assertEquals(1500L, reopenedProgress.first().netFocusSecondsToday)
             assertEquals(52, reopenedProgress.first().books.first().currentPage)
             assertEquals(TopicStatus.MASTERED, reopenedProgress.first().topics.first().status)
+            val topicHistory = reopened.learning.observeTopicHistory(topicId).first()
+            assertEquals(1500L, topicHistory.single().session.actualFocusSec)
 
             val reopenedDaily = reopened.history.observeDailySummary(today).first()
             assertEquals(2700L, reopenedDaily.netFocusSeconds)
             assertEquals(2, reopenedDaily.completedSessionCount)
         }
+
+    @Test
+    fun `subtopics are scoped to their lesson and survive deletion of their parent`() = runTest {
+        val bundle = openStack()
+        val lesson = bundle.learning.saveSubject(
+            SaveSubjectRequest(title = "Math", colorHex = 0xFF60A5FA, weeklyGoalMinutes = 150, dailyGoalMinutes = 20)
+        ).getOrThrow()
+        val parent = bundle.learning.saveTopic(SaveTopicRequest(subjectId = lesson.id, title = "Calculus")).getOrThrow()
+        val childRequest = SaveTopicRequest(subjectId = lesson.id, title = "Limits", parentTopicId = parent.id)
+        val child = bundle.learning.saveTopic(childRequest).getOrThrow()
+
+        assertEquals(20, bundle.learning.observeSubjects().first().single().dailyGoalMinutes)
+        assertEquals(parent.id, child.parentTopicId)
+        assertTrue(bundle.learning.saveTopic(childRequest.copy(parentTopicId = child.id)).isFailure)
+        bundle.learning.softDeleteTopic(parent.id).getOrThrow()
+        val remaining = bundle.learning.observeTopics(lesson.id).first().single()
+        assertEquals(child.id, remaining.id)
+        assertNull(remaining.parentTopicId)
+    }
 
     @Test
     fun `owner isolation edit cascade and tombstones`() =

@@ -35,12 +35,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import net.pekmen.one.core.data.CompletedSessionItem
 import net.pekmen.one.core.designsystem.format.PekmenFormatters
 import net.pekmen.one.core.designsystem.icon.PekmenIcons
 import net.pekmen.one.core.model.LearningBook
@@ -48,6 +50,7 @@ import net.pekmen.one.core.model.LearningSubject
 import net.pekmen.one.core.model.LearningTopic
 import net.pekmen.one.core.model.SubjectWeeklyProgress
 import net.pekmen.one.core.model.TopicStatus
+import java.text.NumberFormat
 
 @Composable
 fun LearningRoute(
@@ -56,6 +59,7 @@ fun LearningRoute(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val history by viewModel.topicHistory.collectAsStateWithLifecycle()
 
     LearningScreen(
         state = state,
@@ -75,6 +79,8 @@ fun LearningRoute(
         onDeleteBook = viewModel::deleteBook,
         onSaveTopic = viewModel::saveTopic,
         onDeleteTopic = viewModel::deleteTopic,
+        onViewTopicHistory = viewModel::openTopicHistory,
+        topicHistory = history,
         modifier = modifier
     )
 }
@@ -92,12 +98,14 @@ fun LearningScreen(
     onCycleTopicStatus: (LearningTopic) -> Unit,
     onFocusOnSubject: (subjectId: String, bookId: String?, topicId: String?) -> Unit = { _, _, _ -> },
     onDismissEditor: () -> Unit,
-    onSaveSubject: (String?, String, Long, Int) -> Unit,
+    onSaveSubject: (String?, String, Long, Int, Int) -> Unit,
     onDeleteSubject: (String) -> Unit,
-    onSaveBook: (String?, String, String, String?, Int, Int) -> Unit,
+    onSaveBook: (String?, String, String, String?, Int, Int, Int, Int) -> Unit,
     onDeleteBook: (String) -> Unit,
-    onSaveTopic: (String?, String, String?, String, TopicStatus) -> Unit,
+    onSaveTopic: (String?, String, String?, String, TopicStatus, String?) -> Unit,
     onDeleteTopic: (String) -> Unit,
+    onViewTopicHistory: (LearningTopic) -> Unit = {},
+    topicHistory: List<CompletedSessionItem> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -141,10 +149,11 @@ fun LearningScreen(
                         progress = progress,
                         onEditSubject = { onEditSubject(progress.subject) },
                         onFocus = {
+                            val topic = progress.topics.firstOrNull()
                             onFocusOnSubject(
                                 progress.subject.id,
-                                progress.books.firstOrNull()?.id,
-                                progress.topics.firstOrNull()?.id
+                                if (topic == null) progress.books.firstOrNull()?.id else topic.bookId,
+                                topic?.id
                             )
                         },
                         onAddBook = { onAddBook(progress.subject.id) },
@@ -178,11 +187,18 @@ fun LearningScreen(
         is LearningEditorModal.TopicEditor -> TopicEditorSheet(
             subjectId = modal.subjectId,
             availableBooks = modal.availableBooks,
+            availableTopics = state.subjectProgress.firstOrNull { it.subject.id == modal.subjectId }?.topics.orEmpty(),
             existing = modal.existing,
             errorMessageRes = state.errorMessageRes,
             onDismiss = onDismissEditor,
             onSave = onSaveTopic,
-            onDelete = onDeleteTopic
+            onDelete = onDeleteTopic,
+            onViewHistory = onViewTopicHistory
+        )
+        is LearningEditorModal.TopicHistory -> TopicHistorySheet(
+            topic = modal.topic,
+            entries = topicHistory.filter { it.session.topicId == modal.topic.id },
+            onDismiss = onDismissEditor
         )
         null -> Unit
     }
@@ -291,6 +307,7 @@ private fun SubjectProgressCard(
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                SubjectGoalDetails(progress)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -362,9 +379,16 @@ private fun SubjectProgressCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                progress.topics.forEach { topic ->
+                val topicsByParent = progress.topics.groupBy { it.parentTopicId }
+                val topicIds = progress.topics.mapTo(HashSet()) { it.id }
+                val roots = progress.topics.filter { it.parentTopicId !in topicIds }
+                val ordered = roots.flatMap { root ->
+                    listOf(root) + topicsByParent[root.id].orEmpty()
+                }
+                ordered.forEach { topic ->
                     TopicItemRow(
                         topic = topic,
+                        isChild = topic.parentTopicId != null,
                         onCycleStatus = { onCycleTopicStatus(topic) },
                         onEdit = { onEditTopic(topic) }
                     )
@@ -410,8 +434,9 @@ private fun BookItemRow(
     onIncreasePage: () -> Unit
 ) {
     val editCd = stringResource(R.string.learning_cd_edit_book, book.title)
-    val prevCd = stringResource(R.string.learning_cd_prev_page)
-    val nextCd = stringResource(R.string.learning_cd_next_page)
+    val chapterOnly = book.totalPages == 0 && book.totalChapters > 0
+    val prevCd = stringResource(if (chapterOnly) R.string.learning_cd_prev_chapter else R.string.learning_cd_prev_page)
+    val nextCd = stringResource(if (chapterOnly) R.string.learning_cd_next_chapter else R.string.learning_cd_next_page)
 
     Column(
         modifier = Modifier
@@ -440,11 +465,23 @@ private fun BookItemRow(
                     PekmenFormatters.formatInteger(book.currentPage),
                     PekmenFormatters.formatInteger(book.totalPages)
                 )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (book.isCompleted) accent else MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (!chapterOnly) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (book.isCompleted) accent else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (book.totalChapters > 0) {
+                    Text(
+                        stringResource(
+                            R.string.learning_chapters_progress,
+                            PekmenFormatters.formatInteger(book.completedChapters),
+                            PekmenFormatters.formatInteger(book.totalChapters)
+                        ),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -474,8 +511,10 @@ private fun BookItemRow(
                 }
             }
         }
+        val progress = if (book.totalPages > 0) book.pageProgressFraction
+        else if (book.totalChapters > 0) book.completedChapters.toFloat() / book.totalChapters else 0f
         LinearProgressIndicator(
-            progress = { book.pageProgressFraction },
+            progress = { progress.coerceIn(0f, 1f) },
             color = accent,
             trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             modifier = Modifier
@@ -486,8 +525,33 @@ private fun BookItemRow(
 }
 
 @Composable
+private fun SubjectGoalDetails(progress: SubjectWeeklyProgress) {
+    val subject = progress.subject
+    val locale = LocalContext.current.resources.configuration.locales[0]
+    if (subject.dailyGoalMinutes > 0) {
+        Text(
+            stringResource(
+                R.string.learning_daily_goal_progress,
+                PekmenFormatters.formatInteger(progress.netFocusSecondsToday / 60, locale),
+                PekmenFormatters.formatInteger(subject.dailyGoalMinutes, locale)
+            ),
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
+    val target = if (subject.weeklyGoalMinutes == 0) {
+        stringResource(R.string.learning_weekly_goal_unset)
+    } else {
+        val fraction = progress.netFocusSecondsThisWeek / (subject.weeklyGoalMinutes * 60.0)
+        val percent = NumberFormat.getPercentInstance(locale).format(fraction)
+        stringResource(R.string.learning_weekly_goal_percentage, percent)
+    }
+    Text(target, style = MaterialTheme.typography.bodySmall)
+}
+
+@Composable
 private fun TopicItemRow(
     topic: LearningTopic,
+    isChild: Boolean,
     onCycleStatus: () -> Unit,
     onEdit: () -> Unit
 ) {
@@ -495,7 +559,8 @@ private fun TopicItemRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp),
+            .heightIn(min = 48.dp)
+            .padding(start = if (isChild) 16.dp else 0.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

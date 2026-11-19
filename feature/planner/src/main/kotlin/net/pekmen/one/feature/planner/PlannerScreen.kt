@@ -41,8 +41,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -64,6 +67,7 @@ import net.pekmen.one.core.model.ExternalCalendarItem
 import net.pekmen.one.core.model.LearningSubject
 import net.pekmen.one.core.model.PlannerTask
 import net.pekmen.one.core.model.TaskRecurrenceRule
+import net.pekmen.one.core.model.TaskStatus
 import java.time.Instant
 import java.time.ZoneId
 
@@ -121,7 +125,9 @@ fun PlannerScreenRoute(
             onRequestCalendarPermission = {
                 calendarPermissionLauncher.launch(Manifest.permission.READ_CALENDAR)
             },
-            onDismissCalendarBanner = viewModel::dismissCalendarBanner
+            onDismissCalendarBanner = viewModel::dismissCalendarBanner,
+            onSelectDisplay = viewModel::selectDisplay,
+            onMoveWeek = viewModel::moveWeek
         )
         SnackbarHost(
             hostState = snackbarHostState,
@@ -147,9 +153,13 @@ fun PlannerScreen(
     onExportToCalendar: (PlannerTask) -> Unit,
     onRequestCalendarPermission: () -> Unit,
     onDismissCalendarBanner: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSelectDisplay: (PlannerDisplay) -> Unit = {},
+    onMoveWeek: (Int) -> Unit = {}
 ) {
     val subjectById = remember(state.subjects) { state.subjects.associateBy { it.id } }
+    var historyStatus by rememberSaveable { mutableStateOf<TaskStatus?>(null) }
+    var historyDays by rememberSaveable { mutableStateOf(0) }
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -161,7 +171,28 @@ fun PlannerScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item(key = "header") {
-                PlannerHeader(onAddTask = onAddTask)
+                PlannerHeader(onAddTask, state.display, onSelectDisplay)
+            }
+
+            if (state.display == PlannerDisplay.WEEK) {
+                item(key = "week_navigation") { PlannerWeekNavigation(state.week, onMoveWeek) }
+                items(state.week, key = { it.date.toString() }) { day ->
+                    PlannerWeekDayCard(day, onEditTask)
+                }
+                return@LazyColumn
+            }
+            if (state.display == PlannerDisplay.HISTORY) {
+                item(key = "history_filters") {
+                    PlannerHistoryFilters(historyStatus, historyDays, { historyStatus = it }, { historyDays = it })
+                }
+                val visible = filterPlannerHistory(
+                    state.pastTasks, historyStatus, historyDays, state.nowWallMs, state.zoneId
+                )
+                if (visible.isEmpty()) {
+                    item(key = "history_empty") { Text(stringResource(R.string.planner_history_empty)) }
+                }
+                items(visible, key = { it.id }) { task -> PlannerHistoryRow(task, onEditTask, state.zoneId) }
+                return@LazyColumn
             }
 
             when (val cal = state.calendarResult) {
@@ -269,7 +300,7 @@ fun PlannerScreen(
 }
 
 @Composable
-private fun PlannerHeader(onAddTask: () -> Unit) {
+private fun PlannerHeader(onAddTask: () -> Unit, display: PlannerDisplay, select: (PlannerDisplay) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -278,8 +309,10 @@ private fun PlannerHeader(onAddTask: () -> Unit) {
         Text(
             text = stringResource(R.string.planner_title),
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.weight(1f)
         )
+        PlannerDisplayPicker(display, select)
         FilledTonalButton(
             onClick = onAddTask,
             modifier = Modifier.heightIn(min = 48.dp)

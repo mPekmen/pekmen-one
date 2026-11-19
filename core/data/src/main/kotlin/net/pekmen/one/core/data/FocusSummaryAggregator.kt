@@ -89,7 +89,9 @@ object FocusSummaryAggregator {
                 netFocusSecondsThisWeek = subjectSessions.sumOf { it.session.actualFocusSec },
                 completedSessionCount = subjectSessions.size,
                 books = booksBySubject[subject.id].orEmpty(),
-                topics = topicsBySubject[subject.id].orEmpty()
+                topics = topicsBySubject[subject.id].orEmpty(),
+                netFocusSecondsToday = subjectSessions
+                    .filter { it.session.effectiveDayDate == anchorDate }.sumOf { it.session.actualFocusSec }
             )
         }
     }

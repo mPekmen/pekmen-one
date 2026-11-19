@@ -66,12 +66,16 @@ fun PekmenAppShell(
     backupPortabilityService: BackupPortabilityService? = null,
     cloudAccountRepository: CloudAccountRepository? = null,
     circlesRepository: CirclesRepository? = null,
-    cloudRlsGateProvider: CloudRlsGateProvider? = null
+    cloudRlsGateProvider: CloudRlsGateProvider? = null,
+    accountContent: (@Composable (onBack: () -> Unit) -> Unit)? = null,
+    taskToOpen: String? = null,
+    onTaskOpened: () -> Unit = {}
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     var pendingFocusLink by remember { mutableStateOf<SessionLearningLink?>(null) }
+    var pendingHistoryTask by remember { mutableStateOf<String?>(null) }
 
     val navigateToTopLevel: (Any) -> Unit = { route ->
         navController.navigate(route) {
@@ -88,6 +92,9 @@ fun PekmenAppShell(
     }
 
     val selectedId = resolveSelectedNavId(currentDestination)
+    LaunchedEffect(taskToOpen, plannerRepository) {
+        if (taskToOpen != null && plannerRepository != null) navigateToTopLevel(PlannerRoute)
+    }
 
     PekmenAdaptiveScaffold(
         destinations = destinations,
@@ -150,6 +157,12 @@ fun PekmenAppShell(
                             calendarInsertGateway = calendarInsertGateway
                         )
                     }
+                    LaunchedEffect(taskToOpen, pendingHistoryTask) {
+                        val id = taskToOpen ?: pendingHistoryTask ?: return@LaunchedEffect
+                        plannerRepository.getTaskById(id)?.let(vm::openEditTask)
+                        if (taskToOpen != null) onTaskOpened()
+                        pendingHistoryTask = null
+                    }
                     PlannerScreenRoute(
                         viewModel = vm,
                         onFocusOnTask = { taskId, subjectId ->
@@ -184,7 +197,16 @@ fun PekmenAppShell(
                 } else {
                     null
                 }
-                InsightsRoute(viewModel = vm, onOpenCircles = openCirclesAction)
+                InsightsRoute(
+                    viewModel = vm,
+                    onOpenCircles = openCirclesAction,
+                    onOpenTask = plannerRepository?.let {
+                        { taskId ->
+                            pendingHistoryTask = taskId
+                            navigateToTopLevel(PlannerRoute)
+                        }
+                    }
+                )
             }
             if (circlesRepository != null) {
                 composable<CirclesRoute> {
@@ -213,7 +235,15 @@ fun PekmenAppShell(
                         cloudAccountRepository = cloudAccountRepository
                     )
                 }
-                SettingsRoute(viewModel = vm)
+                SettingsRoute(
+                    viewModel = vm,
+                    onManageAccount = accountContent?.let { { navController.navigate(AccountRoute) } }
+                )
+            }
+            if (accountContent != null) {
+                composable<AccountRoute> {
+                    accountContent { navController.popBackStack() }
+                }
             }
         }
     }
@@ -235,6 +265,7 @@ private fun resolveSelectedNavId(currentDestination: NavDestination?): String = 
     currentDestination?.hasRoute<InsightsRoute>() == true -> NAV_ID_INSIGHTS
     currentDestination?.hasRoute<CirclesRoute>() == true -> NAV_ID_INSIGHTS
     currentDestination?.hasRoute<SettingsRoute>() == true -> NAV_ID_SETTINGS
+    currentDestination?.hasRoute<AccountRoute>() == true -> NAV_ID_SETTINGS
     else -> NAV_ID_FOCUS
 }
 

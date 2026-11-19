@@ -18,7 +18,8 @@ import net.pekmen.one.core.platform.SystemPermissionChecker
 class TaskReminderScheduler(
     private val context: Context,
     private val permissionChecker: SystemPermissionChecker,
-    private val launcherActivityClass: Class<out Activity>? = null
+    private val launcherActivityClass: Class<out Activity>? = null,
+    private val ownerId: String? = null
 ) {
 
     private val alarmManager: AlarmManager?
@@ -125,6 +126,7 @@ class TaskReminderScheduler(
         val intent = Intent(context, activityClass).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(TaskReminderReceiver.EXTRA_TASK_ID, taskId)
+            putExtra(TaskReminderReceiver.EXTRA_OWNER_ID, ownerId)
         }
         return PendingIntent.getActivity(
             context,
@@ -141,8 +143,9 @@ class TaskReminderScheduler(
     ): PendingIntent? {
         val intent = Intent(context, TaskReminderReceiver::class.java).apply {
             action = TaskReminderReceiver.ACTION_TASK_REMINDER
-            data = Uri.fromParts(REMINDER_URI_SCHEME, taskId, null)
+            data = Uri.fromParts(REMINDER_URI_SCHEME, "${ownerId.orEmpty()}/$taskId", null)
             putExtra(TaskReminderReceiver.EXTRA_TASK_ID, taskId)
+            putExtra(TaskReminderReceiver.EXTRA_OWNER_ID, ownerId)
             if (title != null) {
                 putExtra(TaskReminderReceiver.EXTRA_TASK_TITLE, title)
             }

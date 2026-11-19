@@ -88,11 +88,11 @@ class PekmenPreviewSmokeTest {
                         onEditTopic = {},
                         onCycleTopicStatus = {},
                         onDismissEditor = {},
-                        onSaveSubject = { _, _, _, _ -> },
+                        onSaveSubject = { _, _, _, _, _ -> },
                         onDeleteSubject = {},
-                        onSaveBook = { _, _, _, _, _, _ -> },
+                        onSaveBook = { _, _, _, _, _, _, _, _ -> },
                         onDeleteBook = {},
-                        onSaveTopic = { _, _, _, _, _ -> },
+                        onSaveTopic = { _, _, _, _, _, _ -> },
                         onDeleteTopic = {}
                     )
                 }

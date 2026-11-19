@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+import java.util.Base64
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -10,9 +12,25 @@ plugins {
 
 val cloudEnabled = providers.gradleProperty("pekmen.cloudEnabled")
     .map { it.toBooleanStrictOrNull() ?: false }
-    .getOrElse(false)
+    .getOrElse(true)
 val supabaseUrl = providers.gradleProperty("pekmen.supabaseUrl").getOrElse("")
-val supabaseAnonKey = providers.gradleProperty("pekmen.supabaseAnonKey").getOrElse("")
+val supabaseAnonKey = providers.gradleProperty("pekmen.supabasePublishableKey")
+    .orElse(providers.gradleProperty("pekmen.supabaseAnonKey")).getOrElse("")
+val redirectHost = providers.gradleProperty("pekmen.authRedirectHost").getOrElse("")
+
+val hasLegacyClientKey = runCatching {
+    val claims = Base64.getUrlDecoder().decode(supabaseAnonKey.split('.')[1]).decodeToString()
+    (JsonSlurper().parseText(claims) as? Map<*, *>)?.get("role") == "anon"
+}.getOrDefault(false)
+require(
+    supabaseAnonKey.isEmpty() || supabaseAnonKey.matches(Regex("sb_publishable_[A-Za-z0-9_-]+")) || hasLegacyClientKey
+) { "Use the Supabase publishable key for Android." }
+require(redirectHost.isEmpty() || redirectHost.matches(Regex("[A-Za-z0-9.-]+"))) {
+    "pekmen.authRedirectHost must contain only a hostname."
+}
+
+fun buildConfigString(value: String): String =
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\r", "\\r").replace("\n", "\\n") + "\""
 
 android {
     namespace = "net.pekmen.one"
@@ -22,12 +40,14 @@ android {
         applicationId = "net.pekmen.one"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0-m1"
+        versionName = "0.2.0-v2-dev"
+        versionCode = 2
 
         buildConfigField("boolean", "CLOUD_ENABLED", cloudEnabled.toString())
-        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
+        buildConfigField("String", "SUPABASE_URL", buildConfigString(supabaseUrl))
+        buildConfigField("String", "SUPABASE_ANON_KEY", buildConfigString(supabaseAnonKey))
+        buildConfigField("String", "AUTH_REDIRECT_HOST", buildConfigString(redirectHost.lowercase()))
+        manifestPlaceholders["authRedirectHost"] = redirectHost.lowercase().ifBlank { "auth.invalid" }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         androidResources {
@@ -135,6 +155,7 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.robolectric)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

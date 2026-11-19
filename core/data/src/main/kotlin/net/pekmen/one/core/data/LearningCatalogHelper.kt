@@ -30,6 +30,7 @@ internal class LearningCatalogHelper(
             title = cleanedTitle,
             colorHex = request.colorHex,
             weeklyGoalMinutes = request.weeklyGoalMinutes,
+            dailyGoalMinutes = request.dailyGoalMinutes ?: existing.dailyGoalMinutes,
             sortOrder = request.sortOrder ?: existing.sortOrder,
             sync = existing.sync.copy(
                 clientUpdatedAtMs = now,
@@ -53,14 +54,16 @@ internal class LearningCatalogHelper(
         cleanedTitle: String,
         request: SaveSubjectRequest,
         ownerUserId: String?,
-        now: Long
+        now: Long,
+        id: String = UuidV7.generate(now)
     ): LearningSubjectEntity {
         val activeCount = learningDao.observeActiveSubjectsByOwner(ownerUserId).first().size
         val created = LearningSubjectEntity(
-            id = UuidV7.generate(now),
+            id = id,
             title = cleanedTitle,
             colorHex = request.colorHex,
             weeklyGoalMinutes = request.weeklyGoalMinutes,
+            dailyGoalMinutes = request.dailyGoalMinutes ?: 0,
             sortOrder = request.sortOrder ?: activeCount,
             isArchived = false,
             sync = SyncMetadataEntity(
@@ -260,6 +263,7 @@ internal class LearningCatalogHelper(
         val updated = existing.copy(
             subjectId = request.subjectId,
             bookId = request.bookId,
+            parentTopicId = request.parentTopicId,
             title = cleanedTitle,
             status = request.status.name,
             sortOrder = request.sortOrder ?: existing.sortOrder,
@@ -293,6 +297,7 @@ internal class LearningCatalogHelper(
             id = UuidV7.generate(now),
             subjectId = request.subjectId,
             bookId = request.bookId,
+            parentTopicId = request.parentTopicId,
             title = cleanedTitle,
             status = request.status.name,
             sortOrder = request.sortOrder ?: topicCount,

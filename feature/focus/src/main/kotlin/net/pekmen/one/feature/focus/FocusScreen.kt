@@ -96,7 +96,8 @@ fun FocusRoute(
         onSelectSubject = viewModel::selectSubject,
         onSelectBook = viewModel::selectBook,
         onSelectTopic = viewModel::selectTopic,
-        onSaveWrapUpWithLearning = viewModel::saveWrapUp
+        onSaveWrapUpWithLearning = viewModel::saveWrapUp,
+        onSetCustomBreak = viewModel::setCustomBreakEnabled
     )
 }
 
@@ -121,7 +122,8 @@ fun FocusScreen(
     onSelectSubject: (String?) -> Unit = {},
     onSelectBook: (String?) -> Unit = {},
     onSelectTopic: (String?) -> Unit = {},
-    onSaveWrapUpWithLearning: ((Long?, Int?, String?, Int?, Boolean) -> Unit)? = null
+    onSaveWrapUpWithLearning: ((Long?, Int?, String?, Int?, Boolean) -> Unit)? = null,
+    onSetCustomBreak: (Boolean) -> Unit = {}
 ) {
     val active = state.activeSnapshot
     val profileAccent = state.selectedProfile?.let { Color(it.colorHex) } ?: MaterialTheme.colorScheme.primary
@@ -172,8 +174,10 @@ fun FocusScreen(
                 IdleConfigurationSection(
                     selectedMode = state.selectedMode,
                     customMinutes = state.customMinutes,
+                    customBreakEnabled = state.customBreakEnabled,
                     onSelectMode = onSelectMode,
-                    onSetCustomMinutes = onSetCustomMinutes
+                    onSetCustomMinutes = onSetCustomMinutes,
+                    onSetCustomBreak = onSetCustomBreak
                 )
                 if (state.subjects.isNotEmpty()) {
                     LearningLinkSelectorSection(
@@ -205,6 +209,7 @@ fun FocusScreen(
                 activeStatus = active?.session?.status,
                 currentPhase = active?.session?.currentPhase,
                 awaitingNextPhase = active?.session?.awaitingNextPhase,
+                isPomodoro = active?.session?.sessionMode == FocusSessionMode.POMODORO,
                 netFocusSeconds = clock?.totalFocusSeconds ?: 0L,
                 onStart = onStart,
                 onPause = onPause,
@@ -220,6 +225,7 @@ fun FocusScreen(
                 breakSeconds = state.todaySummary?.breakSeconds ?: 0L,
                 sessionCount = state.todaySummary?.completedSessionCount ?: 0
             )
+            FocusDailyGoal(state.dailyGoalMinutes, state.todaySummary?.netFocusSeconds ?: 0L)
         }
     }
 
@@ -390,8 +396,10 @@ private fun ActiveLearningLinkChip(
 private fun IdleConfigurationSection(
     selectedMode: FocusSessionMode,
     customMinutes: Int,
+    customBreakEnabled: Boolean,
     onSelectMode: (FocusSessionMode) -> Unit,
-    onSetCustomMinutes: (Int) -> Unit
+    onSetCustomMinutes: (Int) -> Unit,
+    onSetCustomBreak: (Boolean) -> Unit
 ) {
     ModeSelectorRow(
         selectedMode = selectedMode,
@@ -402,7 +410,21 @@ private fun IdleConfigurationSection(
             minutes = customMinutes,
             onSetMinutes = onSetCustomMinutes
         )
+        FilterChip(
+            selected = customBreakEnabled,
+            onClick = { onSetCustomBreak(!customBreakEnabled) },
+            label = { Text(stringResource(R.string.focus_custom_break)) }
+        )
     }
+}
+
+@Composable
+private fun FocusDailyGoal(dailyGoalMinutes: Int, focusedSeconds: Long) {
+    if (dailyGoalMinutes <= 0) return
+    Text(
+        stringResource(R.string.focus_daily_goal, focusedSeconds / 60L, dailyGoalMinutes),
+        style = MaterialTheme.typography.bodyMedium
+    )
 }
 
 @Composable
@@ -623,6 +645,7 @@ private fun FocusControlsBar(
     activeStatus: FocusSessionStatus?,
     currentPhase: FocusPhase?,
     awaitingNextPhase: FocusPhase?,
+    isPomodoro: Boolean,
     netFocusSeconds: Long,
     onStart: () -> Unit,
     onPause: () -> Unit,
@@ -675,7 +698,7 @@ private fun FocusControlsBar(
                         Text(text = stringResource(R.string.focus_action_finish))
                     }
                 }
-                if (currentPhase != null && currentPhase != FocusPhase.FOCUS) {
+                if (isPomodoro && currentPhase != null && currentPhase != FocusPhase.FOCUS) {
                     OutlinedButton(
                         onClick = onSkipBreakToFocus,
                         modifier = Modifier

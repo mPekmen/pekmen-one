@@ -20,6 +20,7 @@ import net.pekmen.one.core.model.LearningTopic
 import net.pekmen.one.core.model.SubjectWeeklyProgress
 import net.pekmen.one.core.model.TimeProvider
 import net.pekmen.one.core.model.TopicStatus
+import net.pekmen.one.core.model.UuidV7
 import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -95,12 +96,19 @@ class LearningRepositoryImpl(
         }
     }
 
+    override fun observeTopicHistory(topicId: String): Flow<List<CompletedSessionItem>> =
+        ownerUserIdFlow.flatMapLatest { owner ->
+            accountSessionDao.observeTopicHistory(topicId, owner)
+                .map { rows -> rows.map { CompletedSessionItem(it.session.toDomain(), it.profile.toDomain()) } }
+        }
+
     override suspend fun saveSubject(request: SaveSubjectRequest): Result<LearningSubject> = runCatching {
         val cleanedTitle = request.title.trim().take(MAX_TITLE_LENGTH)
         require(cleanedTitle.isNotEmpty()) { "Subject title must not be blank" }
         require(request.weeklyGoalMinutes in 0..MAX_WEEKLY_GOAL_MINUTES) {
             "Weekly goal minutes out of bounds: ${request.weeklyGoalMinutes}"
         }
+        require(request.dailyGoalMinutes == null || request.dailyGoalMinutes in 0..1_440)
 
         val ownerUserId = currentOwnerUserId()
         val now = timeProvider.wallTimeMs()
@@ -115,6 +123,18 @@ class LearningRepositoryImpl(
             }
         }
         requireNotNull(saved).toDomain()
+    }
+
+    suspend fun ensureFirstSubject(id: String, request: SaveSubjectRequest) {
+        require(UuidV7.isValidUuidV7(id))
+        val title = request.title.trim().take(MAX_TITLE_LENGTH)
+        require(title.isNotBlank() && request.weeklyGoalMinutes in 0..MAX_WEEKLY_GOAL_MINUTES)
+        val owner = requireNotNull(currentOwnerUserId())
+        database.withTransaction {
+            if (learningDao.getSubjectById(id) == null) {
+                catalog.createNewSubject(title, request, owner, timeProvider.wallTimeMs(), id)
+            }
+        }
     }
 
     override suspend fun softDeleteSubject(subjectId: String): Result<Unit> = runCatching {
@@ -282,6 +302,7 @@ class LearningRepositoryImpl(
                 }
             }
             val existing = request.existingId?.let { topicDao.getTopicById(it) }
+            validateTopicParent(request, existing, ownerUserId)
             saved = if (existing != null) {
                 catalog.updateExistingTopic(existing, cleanedTitle, request, ownerUserId, now)
             } else {
@@ -289,6 +310,23 @@ class LearningRepositoryImpl(
             }
         }
         requireNotNull(saved).toDomain()
+    }
+
+    private suspend fun validateTopicParent(
+        request: SaveTopicRequest,
+        existing: LearningTopicEntity?,
+        ownerUserId: String?
+    ) {
+        request.parentTopicId?.let { parentId ->
+            require(parentId != existing?.id)
+            val parent = requireNotNull(topicDao.getTopicById(parentId))
+            require(parent.sync.ownerUserId == ownerUserId && parent.subjectId == request.subjectId)
+            require(parent.parentTopicId == null && (parent.bookId == null || parent.bookId == request.bookId))
+        }
+        if (existing != null && topicDao.getActiveChildren(existing.id).isNotEmpty()) {
+            require(request.parentTopicId == null)
+            require(existing.subjectId == request.subjectId && existing.bookId == request.bookId)
+        }
     }
 
     override suspend fun updateTopicStatus(topicId: String, status: TopicStatus): Result<LearningTopic> = runCatching {
@@ -334,6 +372,17 @@ class LearningRepositoryImpl(
             }
             require(existing.sync.ownerUserId == ownerUserId) {
                 "Topic belongs to a different account"
+            }
+            topicDao.getActiveChildren(topicId).forEach { child ->
+                val newRoot = SaveTopicRequest(
+                    existingId = child.id,
+                    subjectId = child.subjectId,
+                    bookId = child.bookId,
+                    title = child.title,
+                    status = TopicStatus.valueOf(child.status),
+                    sortOrder = child.sortOrder
+                )
+                catalog.updateExistingTopic(child, child.title, newRoot, ownerUserId, now)
             }
             topicDao.softDeleteTopic(topicId, deletedAtMs = now, updatedAtMs = now)
             val deleted = existing.copy(

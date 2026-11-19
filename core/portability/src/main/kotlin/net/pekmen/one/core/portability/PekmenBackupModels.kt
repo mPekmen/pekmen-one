@@ -57,7 +57,8 @@ data class BackupSubject(
     val weeklyGoalMinutes: Int,
     val sortOrder: Int = 0,
     val isArchived: Boolean = false,
-    val sync: BackupSyncMetadata
+    val sync: BackupSyncMetadata,
+    val dailyGoalMinutes: Int = 0
 )
 
 @Serializable
@@ -82,7 +83,8 @@ data class BackupTopic(
     val title: String,
     val status: String = TopicStatus.TODO.name,
     val sortOrder: Int = 0,
-    val sync: BackupSyncMetadata
+    val sync: BackupSyncMetadata,
+    val parentTopicId: String? = null
 )
 
 @Serializable
@@ -161,7 +163,7 @@ data class PekmenBackupArchive(
 ) {
     companion object {
         const val MIN_SUPPORTED_SCHEMA_VERSION = 1
-        const val CURRENT_SCHEMA_VERSION = 2
+        const val CURRENT_SCHEMA_VERSION = 3
         const val CURRENT_APP_VERSION = "0.2.0"
     }
 }

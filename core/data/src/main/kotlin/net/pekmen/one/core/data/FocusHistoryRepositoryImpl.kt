@@ -74,6 +74,15 @@ class FocusHistoryRepositoryImpl(
         }
     }
 
+    override fun observeCompletedInPeriod(start: LocalDate, end: LocalDate): Flow<List<CompletedSessionItem>> {
+        require(!end.isBefore(start))
+        return ownerUserIdFlow.flatMapLatest { ownerId ->
+            accountSessionDao.observeCompletedSessionsByOwner(start.toString(), end.toString(), ownerId).map { rows ->
+                rows.map { CompletedSessionItem(it.session.toDomain(), it.profile.toDomain()) }
+            }
+        }
+    }
+
     override suspend fun updateCompletedSession(
         sessionId: String,
         newFocusSeconds: Long,

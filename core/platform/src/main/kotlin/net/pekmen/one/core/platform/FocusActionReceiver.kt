@@ -19,13 +19,11 @@ class FocusActionReceiver : BroadcastReceiver() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         scope.launch {
             try {
-                val handler = provider.focusTriggerHandler()
-                when (action) {
-                    ACTION_PAUSE -> handler.pauseActiveFromSystem()
-                    ACTION_RESUME -> handler.resumeActiveFromSystem()
-                    ACTION_START_NEXT -> handler.startAwaitingPhaseFromSystem()
-                    ACTION_FINISH -> handler.completeActiveFromSystem()
-                }
+                provider.focusTriggerHandler().handleNotificationAction(
+                    action,
+                    intent.getStringExtra(EXTRA_SESSION_ID),
+                    intent.getStringExtra(EXTRA_OWNER_ID)
+                )
             } finally {
                 pendingResult.finish()
             }
@@ -37,6 +35,8 @@ class FocusActionReceiver : BroadcastReceiver() {
         const val ACTION_RESUME = "net.pekmen.one.action.FOCUS_RESUME"
         const val ACTION_START_NEXT = "net.pekmen.one.action.FOCUS_START_NEXT"
         const val ACTION_FINISH = "net.pekmen.one.action.FOCUS_FINISH"
+        const val EXTRA_SESSION_ID = "extra_focus_session_id"
+        const val EXTRA_OWNER_ID = "extra_focus_owner_id"
 
         private val ALLOWED_ACTIONS = setOf(
             ACTION_PAUSE,

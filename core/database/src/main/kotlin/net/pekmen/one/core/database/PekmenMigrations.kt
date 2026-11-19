@@ -14,6 +14,18 @@ object PekmenMigrations {
         }
     }
 
+    val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE learning_subjects ADD COLUMN daily_goal_minutes INTEGER NOT NULL DEFAULT 0")
+            db.execSQL(
+                "ALTER TABLE learning_topics ADD COLUMN parent_topic_id TEXT " +
+                    "REFERENCES learning_topics(id) ON DELETE SET NULL"
+            )
+            db.execSQL("CREATE INDEX index_learning_topics_parent_topic_id ON learning_topics(parent_topic_id)")
+            db.execSQL("CREATE INDEX index_focus_sessions_topic_id ON focus_sessions(topic_id)")
+        }
+    }
+
     private fun alterM1Tables(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE `focus_sessions` ADD COLUMN `book_start_page` INTEGER")
         db.execSQL("ALTER TABLE `focus_sessions` ADD COLUMN `book_end_page` INTEGER")

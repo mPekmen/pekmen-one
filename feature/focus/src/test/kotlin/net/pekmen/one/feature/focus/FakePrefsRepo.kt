@@ -14,6 +14,7 @@ internal class FakePrefsRepo : UserPreferencesRepository {
     override suspend fun setAutoStartBreaks(enabled: Boolean) = Unit
     override suspend fun setAutoStartNextFocus(enabled: Boolean) = Unit
     override suspend fun setDefaultCustomMinutes(minutes: Int) = Unit
+    override suspend fun setCustomBreakEnabled(enabled: Boolean) = Unit
     override suspend fun setActiveOwnerUserId(ownerUserId: String?) = Unit
     override suspend fun setZenIntegrationEnabled(enabled: Boolean) = Unit
     override suspend fun setRoutineKeywordEnabled(enabled: Boolean) = Unit

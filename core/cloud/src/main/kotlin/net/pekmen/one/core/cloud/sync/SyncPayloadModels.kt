@@ -72,7 +72,8 @@ data class LearningSubjectPayload(
     val weeklyGoalMinutes: Int,
     val sortOrder: Int,
     val isArchived: Boolean,
-    override val sync: SyncMetadataPayload
+    override val sync: SyncMetadataPayload,
+    val dailyGoalMinutes: Int = 0
 ) : SyncEntityPayload {
     override val table: SyncEntityTable get() = SyncEntityTable.LEARNING_SUBJECTS
 }
@@ -103,7 +104,8 @@ data class LearningTopicPayload(
     val title: String,
     val status: String,
     val sortOrder: Int,
-    override val sync: SyncMetadataPayload
+    override val sync: SyncMetadataPayload,
+    val parentTopicId: String? = null
 ) : SyncEntityPayload {
     override val table: SyncEntityTable get() = SyncEntityTable.LEARNING_TOPICS
 }

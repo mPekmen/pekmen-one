@@ -45,4 +45,19 @@
     <string name="insights_circles_card_title">Private Circles</string>
     <string name="insights_circles_card_body">Share opt-in focus totals with small invite-only study groups while keeping notes, books, and tasks private.</string>
     <string name="insights_circles_open_button">Open Private Circles</string>
+    <string name="insights_period_title">Period analysis</string>
+    <string name="insights_period_day">Today</string>
+    <string name="insights_period_week">This week</string>
+    <string name="insights_period_month">This month</string>
+    <string name="insights_period_dates">%1$s – %2$s</string>
+    <string name="insights_period_totals">Focus %1$s · Break %2$s · %3$d sessions</string>
+    <string name="insights_period_goal">Goal: %1$d / %2$d min</string>
+    <string name="insights_period_row">%1$s · %2$s</string>
+    <string name="insights_category_study">Study</string>
+    <string name="insights_category_work">Work</string>
+    <string name="insights_category_sleep">Sleep</string>
+    <string name="insights_category_personal">Personal</string>
+    <string name="insights_category_custom">Custom profiles</string>
+    <string name="insights_chart_day">%1$s: %2$s focus, %3$s break</string>
+    <string name="insights_open_linked_task">Open linked task</string>
 </resources>

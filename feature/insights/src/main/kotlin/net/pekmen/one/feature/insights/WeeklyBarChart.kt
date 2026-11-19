@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -36,7 +37,17 @@ fun WeeklyBarChart(
         days.maxOf { it.netFocusSeconds + it.breakSeconds },
         3_600L
     )
-    val chartCd = stringResource(R.string.insights_chart_cd)
+    val context = LocalContext.current
+    val description = stringResource(R.string.insights_chart_cd)
+    val values = days.joinToString(". ") { day ->
+        context.getString(
+            R.string.insights_chart_day,
+            PekmenFormatters.formatMediumDate(day.date),
+            PekmenFormatters.formatHumanDuration(context, day.netFocusSeconds),
+            PekmenFormatters.formatHumanDuration(context, day.breakSeconds)
+        )
+    }
+    val chartCd = "$description. $values"
 
     Column(
         modifier = modifier

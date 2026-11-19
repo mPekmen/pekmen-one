@@ -16,3 +16,6 @@ data object InsightsRoute
 
 @Serializable
 data object SettingsRoute
+
+@Serializable
+internal data object AccountRoute

@@ -12,6 +12,19 @@ interface FocusTriggerHandler {
     suspend fun handlePhaseAlarmExpired(sessionId: String, segmentId: String)
     suspend fun handleDeviceBootOrUpdate()
     suspend fun handleDeviceShutdown()
+
+    suspend fun handleNotificationAction(action: String, sessionId: String?, ownerId: String?) {
+        when (action) {
+            FocusActionReceiver.ACTION_PAUSE -> pauseActiveFromSystem()
+            FocusActionReceiver.ACTION_RESUME -> resumeActiveFromSystem()
+            FocusActionReceiver.ACTION_START_NEXT -> startAwaitingPhaseFromSystem()
+            FocusActionReceiver.ACTION_FINISH -> completeActiveFromSystem()
+        }
+    }
+
+    suspend fun handleAccountPhaseAlarm(sessionId: String, segmentId: String, ownerId: String?) {
+        handlePhaseAlarmExpired(sessionId, segmentId)
+    }
 }
 
 interface FocusTriggerProvider {

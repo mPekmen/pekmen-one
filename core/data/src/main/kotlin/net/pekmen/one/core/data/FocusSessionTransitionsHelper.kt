@@ -5,6 +5,7 @@ import net.pekmen.one.core.database.dao.FocusProfileDao
 import net.pekmen.one.core.database.dao.FocusSessionDao
 import net.pekmen.one.core.database.dao.LearningDao
 import net.pekmen.one.core.database.dao.LearningTopicDao
+import net.pekmen.one.core.database.dao.PlannerTaskDao
 import net.pekmen.one.core.database.dao.SyncOutboxDao
 import net.pekmen.one.core.database.entity.FocusProfileEntity
 import net.pekmen.one.core.database.entity.FocusSessionEntity
@@ -16,6 +17,7 @@ import net.pekmen.one.core.model.FocusSessionMode
 import net.pekmen.one.core.model.FocusSessionStatus
 import net.pekmen.one.core.model.FocusTimeMath
 import net.pekmen.one.core.model.SessionLearningLink
+import net.pekmen.one.core.model.TaskStatus
 import net.pekmen.one.core.model.TopicStatus
 import net.pekmen.one.core.model.UserPreferences
 import net.pekmen.one.core.model.UuidV7
@@ -39,6 +41,7 @@ internal class FocusSessionTransitionsHelper(
     private val profileDao: FocusProfileDao,
     private val learningDao: LearningDao,
     private val learningTopicDao: LearningTopicDao,
+    private val plannerTaskDao: PlannerTaskDao,
     private val outboxDao: SyncOutboxDao
 ) {
 
@@ -69,6 +72,7 @@ internal class FocusSessionTransitionsHelper(
         if (linkedTopic != null) {
             require(linkedTopic.sync.ownerUserId == ownerUserId) { "Topic belongs to a different account" }
         }
+        args.link?.taskId?.let { validateTask(it, ownerUserId) }
         val plannedSec = when (args.mode) {
             FocusSessionMode.POMODORO -> profile.workMinutes * 60L
             FocusSessionMode.CUSTOM -> {
@@ -118,6 +122,13 @@ internal class FocusSessionTransitionsHelper(
         sessionDao.insertSession(sessionEntity)
         sessionDao.insertSegment(segmentEntity)
         return Triple(sessionEntity, profile, segmentEntity)
+    }
+
+    private suspend fun validateTask(id: String, ownerUserId: String?) {
+        val task = requireNotNull(plannerTaskDao.getTaskById(id)) { "Task no longer exists" }
+        require(task.sync.ownerUserId == ownerUserId && task.status == TaskStatus.OPEN.name) {
+            "Task is unavailable for this account"
+        }
     }
 
     suspend fun updateLinkedBookOnComplete(
@@ -308,7 +319,8 @@ internal class FocusSessionTransitionsHelper(
             mode,
             currentPhase,
             newCycles,
-            active.profile.cyclesBeforeLongBreak
+            active.profile.cyclesBeforeLongBreak,
+            prefs.customBreakEnabled
         )
         val baseUpdated = active.session.copy(
             completedFocusCycles = newCycles,

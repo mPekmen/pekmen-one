@@ -29,6 +29,7 @@ import java.time.LocalDate
         Index(value = ["status"]),
         Index(value = ["deleted_at_ms"]),
         Index(value = ["subject_id"]),
+        Index(value = ["topic_id"]),
         Index(value = ["owner_user_id"])
     ]
 )

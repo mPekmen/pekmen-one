@@ -52,7 +52,7 @@ jobs:
 
       - name: Verify merged manifest security invariants
         shell: pwsh
-        run: ./scripts/verify-security.ps1 -SkipGitleaks
+        run: ./scripts/verify-security.ps1 -SkipGitleaks -AllowCloudPermissions
 
       - name: Upload verification reports
         if: always()

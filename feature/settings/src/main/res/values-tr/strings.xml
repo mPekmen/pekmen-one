@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Ayarlar</string>
+    <string name="settings_manage_account">Hesabı yönet</string>
     <string name="settings_theme_section">Görünüm</string>
     <string name="settings_theme_system">Android sistemini izle</string>
     <string name="settings_theme_dark">Koyu (Midnight Violet)</string>

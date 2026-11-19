@@ -25,6 +25,9 @@ internal class FakeProfileRepo : FocusProfileRepository {
 }
 
 internal class FakeHistoryRepo : FocusHistoryRepository {
+    override fun observeCompletedInPeriod(start: LocalDate, end: LocalDate) =
+        kotlinx.coroutines.flow.flowOf(emptyList<CompletedSessionItem>())
+
     override fun observeDailySummary(date: LocalDate): Flow<DailyFocusSummary> =
         flowOf(DailyFocusSummary(date, 0L, 0L, 0, null))
 

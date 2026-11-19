@@ -66,7 +66,8 @@ import java.time.format.FormatStyle
 @Composable
 fun SettingsRoute(
     viewModel: SettingsViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onManageAccount: (() -> Unit)? = null
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -98,6 +99,7 @@ fun SettingsRoute(
         onRestoreBackupJson = { viewModel.restoreBackupJson(it, resolver) },
         onExportCsv = { target, uri -> viewModel.exportCsv(target, uri, resolver) },
         onCloudAction = viewModel::onCloudAction,
+        onManageAccount = onManageAccount,
         modifier = modifier
     )
 }
@@ -119,7 +121,8 @@ fun SettingsScreen(
     onExportBackupJson: (Uri) -> Unit = {},
     onRestoreBackupJson: (Uri) -> Unit = {},
     onExportCsv: (PortabilityCsvTarget, Uri) -> Unit = { _, _ -> },
-    onCloudAction: (CloudAccountAction) -> Unit = {}
+    onCloudAction: (CloudAccountAction) -> Unit = {},
+    onManageAccount: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
 
@@ -138,6 +141,13 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
+            }
+            if (onManageAccount != null) {
+                item {
+                    FilledTonalButton(onClick = onManageAccount, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.settings_manage_account))
+                    }
+                }
             }
 
             item {

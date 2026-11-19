@@ -35,6 +35,10 @@ class UserPreferencesRepositoryImpl(
         dataStore.setDefaultCustomMinutes(minutes)
     }
 
+    override suspend fun setCustomBreakEnabled(enabled: Boolean) {
+        dataStore.setCustomBreakEnabled(enabled)
+    }
+
     override suspend fun setActiveOwnerUserId(ownerUserId: String?) {
         dataStore.setActiveOwnerUserId(ownerUserId)
     }

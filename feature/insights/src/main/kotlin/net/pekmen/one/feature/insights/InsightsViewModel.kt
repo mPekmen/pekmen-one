@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.pekmen.one.core.data.CompletedSessionItem
@@ -46,7 +47,8 @@ data class InsightsUiState(
     val recentSessions: List<CompletedSessionItem> = emptyList(),
     val editingSession: CompletedSessionItem? = null,
     val isManualSheetOpen: Boolean = false,
-    val errorMessageRes: Int? = null
+    val errorMessageRes: Int? = null,
+    val periodSummary: InsightsPeriodSummary? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,6 +63,26 @@ class InsightsViewModel(
     private val editingSession = MutableStateFlow<CompletedSessionItem?>(null)
     private val manualSheetOpen = MutableStateFlow(false)
     private val errorRes = MutableStateFlow<Int?>(null)
+    private val selectedPeriod = MutableStateFlow(InsightsPeriod.WEEK)
+
+    private val periodFlow = combine(preferencesRepository.preferences, selectedPeriod) { prefs, period ->
+        prefs to period
+    }.flatMapLatest { (prefs, period) ->
+        val today = EffectiveDayCalculator.effectiveDateFor(
+            diagnosticsRepository.currentWallTimeMs(),
+            diagnosticsRepository.currentZoneId(),
+            prefs.dayRolloverHour
+        )
+        val start = period.startOn(today)
+        val goal = when (period) {
+            InsightsPeriod.DAY -> prefs.dailyGoalMinutes
+            InsightsPeriod.WEEK -> prefs.weeklyGoalMinutes
+            InsightsPeriod.MONTH -> 0
+        }
+        historyRepository.observeCompletedInPeriod(start, today).map { sessions ->
+            periodSummary(period, start, today, sessions, goal)
+        }
+    }
 
     private val effectiveTodayFlow = preferencesRepository.preferences.flatMapLatest { prefs ->
         val effectiveToday = EffectiveDayCalculator.effectiveDateFor(
@@ -89,8 +111,9 @@ class InsightsViewModel(
         dataFlow,
         editingSession,
         manualSheetOpen,
-        errorRes
-    ) { (profiles, summaries, recent), editing, manualOpen, err ->
+        errorRes,
+        periodFlow
+    ) { (profiles, summaries, recent), editing, manualOpen, err, period ->
         InsightsUiState(
             profiles = profiles,
             todaySummary = summaries.first,
@@ -99,13 +122,18 @@ class InsightsViewModel(
             recentSessions = recent,
             editingSession = editing,
             isManualSheetOpen = manualOpen,
-            errorMessageRes = err
+            errorMessageRes = err,
+            periodSummary = period
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000L),
         initialValue = InsightsUiState()
     )
+
+    fun selectPeriod(period: InsightsPeriod) {
+        selectedPeriod.value = period
+    }
 
     fun openManualSheet() {
         errorRes.value = null

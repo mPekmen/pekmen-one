@@ -59,10 +59,13 @@ data class FocusUiState(
     val activeLinkedSubject: LearningSubject? = null,
     val activeLinkedBook: LearningBook? = null,
     val activeLinkedTopic: LearningTopic? = null,
-    val isSavingWrapUp: Boolean = false
+    val isSavingWrapUp: Boolean = false,
+    val customBreakEnabled: Boolean = false,
+    val dailyGoalMinutes: Int = 0
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("TooManyFunctions") // Focus controls call named actions on one session state owner.
 class FocusViewModel(
     private val sessionRepository: FocusSessionRepository,
     private val profileRepository: FocusProfileRepository,
@@ -222,6 +225,10 @@ class FocusViewModel(
         viewModelScope.launch {
             preferencesRepository.setDefaultCustomMinutes(minutes)
         }
+    }
+
+    fun setCustomBreakEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setCustomBreakEnabled(enabled) }
     }
 
     fun selectSubject(subjectId: String?) {
@@ -431,10 +438,12 @@ class FocusViewModel(
         }
 
         return FocusUiState(
-            profiles = bundle.profiles,
+            profiles = bundle.profiles.sortedByDescending { it.id in bundle.prefs.preferredProfileIds },
             selectedProfile = active?.profile ?: selectedProfile,
             selectedMode = mode,
             customMinutes = bundle.prefs.defaultCustomMinutes,
+            customBreakEnabled = bundle.prefs.customBreakEnabled,
+            dailyGoalMinutes = bundle.prefs.dailyGoalMinutes,
             activeSnapshot = active,
             clock = clock,
             todaySummary = bundle.todaySummary,

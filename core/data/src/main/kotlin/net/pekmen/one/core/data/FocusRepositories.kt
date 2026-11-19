@@ -77,6 +77,7 @@ interface FocusSessionRepository {
 interface FocusHistoryRepository {
     fun observeDailySummary(date: LocalDate): Flow<DailyFocusSummary>
     fun observeWeeklySummary(anchorDate: LocalDate): Flow<WeeklyFocusSummary>
+    fun observeCompletedInPeriod(start: LocalDate, end: LocalDate): Flow<List<CompletedSessionItem>>
     fun observeRecentCompletedSessions(limit: Int = 60): Flow<List<CompletedSessionItem>>
 
     suspend fun updateCompletedSession(

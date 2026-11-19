@@ -59,4 +59,20 @@
     <string name="planner_cd_complete_task">Görevi tamamlandı olarak işaretle</string>
     <string name="planner_cd_reopen_task">Görevi yeniden aç</string>
     <string name="planner_cd_delete_task">Görevi sil</string>
+    <string name="planner_display_agenda">Ajanda</string>
+    <string name="planner_display_week">Hafta</string>
+    <string name="planner_display_history">Geçmiş</string>
+    <string name="planner_previous_week">Önceki hafta</string>
+    <string name="planner_next_week">Sonraki hafta</string>
+    <string name="planner_week_range">%1$s – %2$s</string>
+    <string name="planner_week_day_empty">Planlanan bir şey yok</string>
+    <string name="planner_history_empty">Tamamlanmış veya iptal edilmiş görev yok</string>
+    <string name="planner_status_open">Açık</string>
+    <string name="planner_status_completed">Tamamlandı</string>
+    <string name="planner_status_cancelled">İptal edildi</string>
+    <string name="planner_display_menu">Görünümü değiştir, şu an %1$s</string>
+    <string name="planner_history_all_statuses">Tüm durumlar</string>
+    <string name="planner_history_all_dates">Tüm tarihler</string>
+    <string name="planner_history_7_days">Son 7 gün</string>
+    <string name="planner_history_30_days">Son 30 gün</string>
 </resources>

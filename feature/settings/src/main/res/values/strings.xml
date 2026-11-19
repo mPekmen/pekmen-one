@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Settings</string>
+    <string name="settings_manage_account">Manage account</string>
     <string name="settings_theme_section">Appearance</string>
     <string name="settings_theme_system">Follow Android system</string>
     <string name="settings_theme_dark">Dark (Midnight Violet)</string>

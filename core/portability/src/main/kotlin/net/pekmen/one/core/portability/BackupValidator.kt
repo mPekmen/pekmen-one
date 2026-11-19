@@ -145,6 +145,7 @@ internal object BackupValidator {
             archive.topics.forEach { topic ->
                 add("topic.subjectId" to topic.subjectId)
                 topic.bookId?.let { add("topic.bookId" to it) }
+                topic.parentTopicId?.let { add("topic.parentTopicId" to it) }
             }
             archive.sessions.forEach { session ->
                 add("session.profileId" to session.profileId)
@@ -228,7 +229,8 @@ internal object BackupValidator {
     private fun validateSubjects(subjects: List<BackupSubject>): BackupValidationResult.Invalid? {
         for (subject in subjects) {
             validateSyncMetadata("subject", subject.id, subject.sync)?.let { return it }
-            if (subject.title.isBlank() || subject.weeklyGoalMinutes < 0 || subject.sortOrder < 0) {
+            val validGoals = subject.weeklyGoalMinutes >= 0 && subject.dailyGoalMinutes in 0..1_440
+            if (subject.title.isBlank() || subject.sortOrder < 0 || !validGoals) {
                 return boundsError("Invalid bounds in subject ${subject.id}")
             }
         }
@@ -381,21 +383,30 @@ internal object BackupValidator {
         subjectIds: Set<String>,
         bookIds: Set<String>
     ): BackupValidationResult.Invalid? {
+        val topics = archive.topics.associateBy { it.id }
         for (book in archive.books) {
             if (book.subjectId !in subjectIds) {
                 return fkError("book ${book.id} references missing subjectId=${book.subjectId}")
             }
         }
         for (topic in archive.topics) {
-            if (topic.subjectId !in subjectIds) {
-                return fkError("topic ${topic.id} references missing subjectId=${topic.subjectId}")
+            val parentId = topic.parentTopicId
+            val parent = topics[parentId]
+            val issue = when {
+                topic.subjectId !in subjectIds -> "missing subjectId=${topic.subjectId}"
+                topic.bookId != null && topic.bookId !in bookIds -> "missing bookId=${topic.bookId}"
+                parentId != null && (parent == null || !isAllowedParent(topic, parent)) ->
+                    "invalid parentTopicId=$parentId"
+                else -> null
             }
-            if (topic.bookId != null && topic.bookId !in bookIds) {
-                return fkError("topic ${topic.id} references missing bookId=${topic.bookId}")
-            }
+            if (issue != null) return fkError("topic ${topic.id} references $issue")
         }
         return null
     }
+
+    private fun isAllowedParent(topic: BackupTopic, parent: BackupTopic): Boolean =
+        parent.subjectId == topic.subjectId && parent.parentTopicId == null &&
+            (parent.bookId == null || parent.bookId == topic.bookId)
 
     private fun validateSessionAndTaskForeignKeys(
         archive: PekmenBackupArchive,

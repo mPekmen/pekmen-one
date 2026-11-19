@@ -54,4 +54,18 @@
     <string name="learning_cd_select_color">Select subject color</string>
     <string name="learning_symbol_minus" translatable="false">−</string>
     <string name="learning_symbol_plus" translatable="false">+</string>
+    <string name="learning_subject_daily_goal">Daily target (minutes, 0 to disable)</string>
+    <string name="learning_daily_goal_progress">Today %1$s / %2$s min</string>
+    <string name="learning_chapters_total">Total chapters</string>
+    <string name="learning_chapters_done">Chapters finished</string>
+    <string name="learning_topic_parent">Parent topic</string>
+    <string name="learning_topic_root">Top level</string>
+    <string name="learning_topic_history">Focus history</string>
+    <string name="learning_topic_history_empty">No completed focus sessions yet.</string>
+    <string name="learning_topic_history_entry">%1$s · %2$s</string>
+    <string name="learning_chapters_progress">%1$s / %2$s chapters</string>
+    <string name="learning_weekly_goal_percentage">Weekly goal reached %1$s</string>
+    <string name="learning_weekly_goal_unset">No weekly target</string>
+    <string name="learning_cd_prev_chapter">Decrease completed chapters</string>
+    <string name="learning_cd_next_chapter">Increase completed chapters</string>
 </resources>

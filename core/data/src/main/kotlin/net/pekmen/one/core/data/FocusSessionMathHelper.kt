@@ -77,10 +77,13 @@ internal object FocusSessionMathHelper {
         mode: FocusSessionMode,
         currentPhase: FocusPhase,
         newCompletedCycles: Int,
-        cyclesBeforeLongBreak: Int
+        cyclesBeforeLongBreak: Int,
+        customBreakEnabled: Boolean
     ): FocusPhase? {
         return when (mode) {
-            FocusSessionMode.CUSTOM, FocusSessionMode.STOPWATCH -> null
+            FocusSessionMode.STOPWATCH -> null
+            FocusSessionMode.CUSTOM -> FocusPhase.SHORT_BREAK
+                .takeIf { customBreakEnabled && currentPhase == FocusPhase.FOCUS }
             FocusSessionMode.POMODORO -> if (currentPhase == FocusPhase.FOCUS) {
                 if (newCompletedCycles % cyclesBeforeLongBreak == 0) {
                     FocusPhase.LONG_BREAK

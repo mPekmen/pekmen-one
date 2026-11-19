@@ -185,6 +185,25 @@ class FocusEngineRepositoryTest {
     }
 
     @Test
+    fun `custom countdown offers a single optional break and separates its duration`() = runTest {
+        val (_, sessions, _) = buildRepos(this)
+        dataStore.setCustomBreakEnabled(true)
+        sessions.startSession(BuiltInProfiles.STUDY_ID, FocusSessionMode.CUSTOM, 10).getOrThrow()
+
+        fakeTime.advanceBy(10 * 60_000L)
+        sessions.reconcileActiveSessionAfterBootOrWake()
+        assertEquals(FocusPhase.SHORT_BREAK, sessions.activeSession.first()?.session?.awaitingNextPhase)
+        sessions.startAwaitingNextPhase()
+
+        fakeTime.advanceBy(5 * 60_000L)
+        sessions.reconcileActiveSessionAfterBootOrWake()
+        assertNull(sessions.activeSession.first()?.session?.awaitingNextPhase)
+        val completed = requireNotNull(sessions.completeActiveSession())
+        assertEquals(600L, completed.actualFocusSec)
+        assertEquals(300L, completed.actualBreakSec)
+    }
+
+    @Test
     fun `discarding short session marks abandoned and excludes from summaries`() = runTest {
         val (_, sessions, history) = buildRepos(this)
         val today = LocalDate.of(2026, 11, 19)

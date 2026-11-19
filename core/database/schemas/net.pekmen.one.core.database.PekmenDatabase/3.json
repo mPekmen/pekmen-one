@@ -1,0 +1,1464 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "ab2a3de14f8b8d3db48a045e0b921f44",
+    "entities": [
+      {
+        "tableName": "focus_profiles",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `built_in_slug` TEXT NOT NULL, `custom_name` TEXT, `color_hex` INTEGER NOT NULL, `icon_key` TEXT NOT NULL, `default_mode` TEXT NOT NULL, `work_minutes` INTEGER NOT NULL, `short_break_minutes` INTEGER NOT NULL, `long_break_minutes` INTEGER NOT NULL, `cycles_before_long_break` INTEGER NOT NULL, `dnd_enabled` INTEGER NOT NULL, `sort_order` INTEGER NOT NULL, `is_archived` INTEGER NOT NULL, `owner_user_id` TEXT, `created_at_ms` INTEGER NOT NULL, `client_updated_at_ms` INTEGER NOT NULL, `server_updated_at_ms` INTEGER, `deleted_at_ms` INTEGER, `version` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "builtInSlug",
+            "columnName": "built_in_slug",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "customName",
+            "columnName": "custom_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "colorHex",
+            "columnName": "color_hex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "iconKey",
+            "columnName": "icon_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "defaultMode",
+            "columnName": "default_mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workMinutes",
+            "columnName": "work_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shortBreakMinutes",
+            "columnName": "short_break_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longBreakMinutes",
+            "columnName": "long_break_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cyclesBeforeLongBreak",
+            "columnName": "cycles_before_long_break",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dndEnabled",
+            "columnName": "dnd_enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sort_order",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isArchived",
+            "columnName": "is_archived",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.ownerUserId",
+            "columnName": "owner_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sync.createdAtMs",
+            "columnName": "created_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.clientUpdatedAtMs",
+            "columnName": "client_updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.serverUpdatedAtMs",
+            "columnName": "server_updated_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.deletedAtMs",
+            "columnName": "deleted_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.version",
+            "columnName": "version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.syncStatus",
+            "columnName": "sync_status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_focus_profiles_sort_order",
+            "unique": false,
+            "columnNames": [
+              "sort_order"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_profiles_sort_order` ON `${TABLE_NAME}` (`sort_order`)"
+          },
+          {
+            "name": "index_focus_profiles_deleted_at_ms",
+            "unique": false,
+            "columnNames": [
+              "deleted_at_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_profiles_deleted_at_ms` ON `${TABLE_NAME}` (`deleted_at_ms`)"
+          }
+        ]
+      },
+      {
+        "tableName": "focus_sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `profile_id` TEXT NOT NULL, `subject_id` TEXT, `book_id` TEXT, `topic_id` TEXT, `task_id` TEXT, `book_start_page` INTEGER, `book_end_page` INTEGER, `session_mode` TEXT NOT NULL, `status` TEXT NOT NULL, `current_phase` TEXT NOT NULL, `awaiting_next_phase` TEXT, `completed_focus_cycles` INTEGER NOT NULL, `started_at_wall_ms` INTEGER NOT NULL, `ended_at_wall_ms` INTEGER, `effective_day_date` TEXT NOT NULL, `planned_focus_sec` INTEGER, `actual_focus_sec` INTEGER NOT NULL, `actual_break_sec` INTEGER NOT NULL, `pause_count` INTEGER NOT NULL, `is_manual_entry` INTEGER NOT NULL, `was_manually_adjusted` INTEGER NOT NULL, `interrupted_by_reboot` INTEGER NOT NULL, `focus_rating` INTEGER, `reflection_note` TEXT, `owner_user_id` TEXT, `created_at_ms` INTEGER NOT NULL, `client_updated_at_ms` INTEGER NOT NULL, `server_updated_at_ms` INTEGER, `deleted_at_ms` INTEGER, `version` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`profile_id`) REFERENCES `focus_profiles`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profileId",
+            "columnName": "profile_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subjectId",
+            "columnName": "subject_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "bookId",
+            "columnName": "book_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topicId",
+            "columnName": "topic_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "task_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "bookStartPage",
+            "columnName": "book_start_page",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "bookEndPage",
+            "columnName": "book_end_page",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sessionMode",
+            "columnName": "session_mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentPhase",
+            "columnName": "current_phase",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "awaitingNextPhase",
+            "columnName": "awaiting_next_phase",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "completedFocusCycles",
+            "columnName": "completed_focus_cycles",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAtWallMs",
+            "columnName": "started_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endedAtWallMs",
+            "columnName": "ended_at_wall_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "effectiveDayDate",
+            "columnName": "effective_day_date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "plannedFocusSec",
+            "columnName": "planned_focus_sec",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "actualFocusSec",
+            "columnName": "actual_focus_sec",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actualBreakSec",
+            "columnName": "actual_break_sec",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pauseCount",
+            "columnName": "pause_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isManualEntry",
+            "columnName": "is_manual_entry",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wasManuallyAdjusted",
+            "columnName": "was_manually_adjusted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "interruptedByReboot",
+            "columnName": "interrupted_by_reboot",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "focusRating",
+            "columnName": "focus_rating",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "reflectionNote",
+            "columnName": "reflection_note",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sync.ownerUserId",
+            "columnName": "owner_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sync.createdAtMs",
+            "columnName": "created_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.clientUpdatedAtMs",
+            "columnName": "client_updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.serverUpdatedAtMs",
+            "columnName": "server_updated_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.deletedAtMs",
+            "columnName": "deleted_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.version",
+            "columnName": "version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.syncStatus",
+            "columnName": "sync_status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_focus_sessions_profile_id",
+            "unique": false,
+            "columnNames": [
+              "profile_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_sessions_profile_id` ON `${TABLE_NAME}` (`profile_id`)"
+          },
+          {
+            "name": "index_focus_sessions_effective_day_date",
+            "unique": false,
+            "columnNames": [
+              "effective_day_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_sessions_effective_day_date` ON `${TABLE_NAME}` (`effective_day_date`)"
+          },
+          {
+            "name": "index_focus_sessions_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_sessions_status` ON `${TABLE_NAME}` (`status`)"
+          },
+          {
+            "name": "index_focus_sessions_deleted_at_ms",
+            "unique": false,
+            "columnNames": [
+              "deleted_at_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_sessions_deleted_at_ms` ON `${TABLE_NAME}` (`deleted_at_ms`)"
+          },
+          {
+            "name": "index_focus_sessions_subject_id",
+            "unique": false,
+            "columnNames": [
+              "subject_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_sessions_subject_id` ON `${TABLE_NAME}` (`subject_id`)"
+          },
+          {
+            "name": "index_focus_sessions_topic_id",
+            "unique": false,
+            "columnNames": [
+              "topic_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_sessions_topic_id` ON `${TABLE_NAME}` (`topic_id`)"
+          },
+          {
+            "name": "index_focus_sessions_owner_user_id",
+            "unique": false,
+            "columnNames": [
+              "owner_user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_sessions_owner_user_id` ON `${TABLE_NAME}` (`owner_user_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "focus_profiles",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "profile_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "focus_session_segments",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `session_id` TEXT NOT NULL, `segment_index` INTEGER NOT NULL, `phase` TEXT NOT NULL, `started_at_wall_ms` INTEGER NOT NULL, `started_at_elapsed_ms` INTEGER NOT NULL, `boot_count` INTEGER NOT NULL, `last_checkpointed_duration_ms` INTEGER NOT NULL, `planned_duration_ms` INTEGER, `ended_at_wall_ms` INTEGER, `duration_ms` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`session_id`) REFERENCES `focus_sessions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "segmentIndex",
+            "columnName": "segment_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phase",
+            "columnName": "phase",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAtWallMs",
+            "columnName": "started_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAtElapsedMs",
+            "columnName": "started_at_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bootCount",
+            "columnName": "boot_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastCheckpointedDurationMs",
+            "columnName": "last_checkpointed_duration_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "plannedDurationMs",
+            "columnName": "planned_duration_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "endedAtWallMs",
+            "columnName": "ended_at_wall_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "durationMs",
+            "columnName": "duration_ms",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_focus_session_segments_session_id",
+            "unique": false,
+            "columnNames": [
+              "session_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_session_segments_session_id` ON `${TABLE_NAME}` (`session_id`)"
+          },
+          {
+            "name": "index_focus_session_segments_session_id_segment_index",
+            "unique": true,
+            "columnNames": [
+              "session_id",
+              "segment_index"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_focus_session_segments_session_id_segment_index` ON `${TABLE_NAME}` (`session_id`, `segment_index`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "focus_sessions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "session_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "sync_outbox",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`mutation_id` TEXT NOT NULL, `entity_table` TEXT NOT NULL, `entity_id` TEXT NOT NULL, `op_type` TEXT NOT NULL, `payload_json` TEXT NOT NULL, `base_version` INTEGER NOT NULL, `attempt_count` INTEGER NOT NULL, `created_at_ms` INTEGER NOT NULL, `owner_user_id` TEXT, `last_error` TEXT, PRIMARY KEY(`mutation_id`))",
+        "fields": [
+          {
+            "fieldPath": "mutationId",
+            "columnName": "mutation_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "entityTable",
+            "columnName": "entity_table",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "entityId",
+            "columnName": "entity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "opType",
+            "columnName": "op_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payload_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "baseVersion",
+            "columnName": "base_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attemptCount",
+            "columnName": "attempt_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMs",
+            "columnName": "created_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerUserId",
+            "columnName": "owner_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastError",
+            "columnName": "last_error",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "mutation_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sync_outbox_entity_table_entity_id",
+            "unique": true,
+            "columnNames": [
+              "entity_table",
+              "entity_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_sync_outbox_entity_table_entity_id` ON `${TABLE_NAME}` (`entity_table`, `entity_id`)"
+          },
+          {
+            "name": "index_sync_outbox_owner_user_id",
+            "unique": false,
+            "columnNames": [
+              "owner_user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sync_outbox_owner_user_id` ON `${TABLE_NAME}` (`owner_user_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "learning_subjects",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `color_hex` INTEGER NOT NULL, `weekly_goal_minutes` INTEGER NOT NULL, `daily_goal_minutes` INTEGER NOT NULL DEFAULT 0, `sort_order` INTEGER NOT NULL, `is_archived` INTEGER NOT NULL, `owner_user_id` TEXT, `created_at_ms` INTEGER NOT NULL, `client_updated_at_ms` INTEGER NOT NULL, `server_updated_at_ms` INTEGER, `deleted_at_ms` INTEGER, `version` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colorHex",
+            "columnName": "color_hex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weeklyGoalMinutes",
+            "columnName": "weekly_goal_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dailyGoalMinutes",
+            "columnName": "daily_goal_minutes",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sort_order",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isArchived",
+            "columnName": "is_archived",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.ownerUserId",
+            "columnName": "owner_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sync.createdAtMs",
+            "columnName": "created_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.clientUpdatedAtMs",
+            "columnName": "client_updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.serverUpdatedAtMs",
+            "columnName": "server_updated_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.deletedAtMs",
+            "columnName": "deleted_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.version",
+            "columnName": "version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.syncStatus",
+            "columnName": "sync_status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_learning_subjects_deleted_at_ms",
+            "unique": false,
+            "columnNames": [
+              "deleted_at_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_subjects_deleted_at_ms` ON `${TABLE_NAME}` (`deleted_at_ms`)"
+          },
+          {
+            "name": "index_learning_subjects_owner_user_id",
+            "unique": false,
+            "columnNames": [
+              "owner_user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_subjects_owner_user_id` ON `${TABLE_NAME}` (`owner_user_id`)"
+          },
+          {
+            "name": "index_learning_subjects_sort_order",
+            "unique": false,
+            "columnNames": [
+              "sort_order"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_subjects_sort_order` ON `${TABLE_NAME}` (`sort_order`)"
+          }
+        ]
+      },
+      {
+        "tableName": "learning_books",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `subject_id` TEXT NOT NULL, `title` TEXT NOT NULL, `author` TEXT, `total_pages` INTEGER NOT NULL, `current_page` INTEGER NOT NULL, `total_chapters` INTEGER NOT NULL, `completed_chapters` INTEGER NOT NULL, `is_completed` INTEGER NOT NULL, `owner_user_id` TEXT, `created_at_ms` INTEGER NOT NULL, `client_updated_at_ms` INTEGER NOT NULL, `server_updated_at_ms` INTEGER, `deleted_at_ms` INTEGER, `version` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`subject_id`) REFERENCES `learning_subjects`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subjectId",
+            "columnName": "subject_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "author",
+            "columnName": "author",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "totalPages",
+            "columnName": "total_pages",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentPage",
+            "columnName": "current_page",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalChapters",
+            "columnName": "total_chapters",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedChapters",
+            "columnName": "completed_chapters",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCompleted",
+            "columnName": "is_completed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.ownerUserId",
+            "columnName": "owner_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sync.createdAtMs",
+            "columnName": "created_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.clientUpdatedAtMs",
+            "columnName": "client_updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.serverUpdatedAtMs",
+            "columnName": "server_updated_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.deletedAtMs",
+            "columnName": "deleted_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.version",
+            "columnName": "version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.syncStatus",
+            "columnName": "sync_status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_learning_books_subject_id",
+            "unique": false,
+            "columnNames": [
+              "subject_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_books_subject_id` ON `${TABLE_NAME}` (`subject_id`)"
+          },
+          {
+            "name": "index_learning_books_deleted_at_ms",
+            "unique": false,
+            "columnNames": [
+              "deleted_at_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_books_deleted_at_ms` ON `${TABLE_NAME}` (`deleted_at_ms`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "learning_subjects",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "subject_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "learning_topics",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `subject_id` TEXT NOT NULL, `book_id` TEXT, `parent_topic_id` TEXT, `title` TEXT NOT NULL, `status` TEXT NOT NULL, `sort_order` INTEGER NOT NULL, `owner_user_id` TEXT, `created_at_ms` INTEGER NOT NULL, `client_updated_at_ms` INTEGER NOT NULL, `server_updated_at_ms` INTEGER, `deleted_at_ms` INTEGER, `version` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`subject_id`) REFERENCES `learning_subjects`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`parent_topic_id`) REFERENCES `learning_topics`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subjectId",
+            "columnName": "subject_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bookId",
+            "columnName": "book_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "parentTopicId",
+            "columnName": "parent_topic_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sort_order",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.ownerUserId",
+            "columnName": "owner_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sync.createdAtMs",
+            "columnName": "created_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.clientUpdatedAtMs",
+            "columnName": "client_updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.serverUpdatedAtMs",
+            "columnName": "server_updated_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.deletedAtMs",
+            "columnName": "deleted_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.version",
+            "columnName": "version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.syncStatus",
+            "columnName": "sync_status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_learning_topics_subject_id",
+            "unique": false,
+            "columnNames": [
+              "subject_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_topics_subject_id` ON `${TABLE_NAME}` (`subject_id`)"
+          },
+          {
+            "name": "index_learning_topics_book_id",
+            "unique": false,
+            "columnNames": [
+              "book_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_topics_book_id` ON `${TABLE_NAME}` (`book_id`)"
+          },
+          {
+            "name": "index_learning_topics_parent_topic_id",
+            "unique": false,
+            "columnNames": [
+              "parent_topic_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_topics_parent_topic_id` ON `${TABLE_NAME}` (`parent_topic_id`)"
+          },
+          {
+            "name": "index_learning_topics_deleted_at_ms",
+            "unique": false,
+            "columnNames": [
+              "deleted_at_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_learning_topics_deleted_at_ms` ON `${TABLE_NAME}` (`deleted_at_ms`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "learning_subjects",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "subject_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "learning_topics",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "parent_topic_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "planner_tasks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `notes` TEXT, `subject_id` TEXT, `due_at_wall_ms` INTEGER, `reminder_at_wall_ms` INTEGER, `recurrence_rule` TEXT NOT NULL, `status` TEXT NOT NULL, `completed_at_wall_ms` INTEGER, `priority` INTEGER NOT NULL, `owner_user_id` TEXT, `created_at_ms` INTEGER NOT NULL, `client_updated_at_ms` INTEGER NOT NULL, `server_updated_at_ms` INTEGER, `deleted_at_ms` INTEGER, `version` INTEGER NOT NULL, `sync_status` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "subjectId",
+            "columnName": "subject_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dueAtWallMs",
+            "columnName": "due_at_wall_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "reminderAtWallMs",
+            "columnName": "reminder_at_wall_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "recurrenceRule",
+            "columnName": "recurrence_rule",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedAtWallMs",
+            "columnName": "completed_at_wall_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.ownerUserId",
+            "columnName": "owner_user_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sync.createdAtMs",
+            "columnName": "created_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.clientUpdatedAtMs",
+            "columnName": "client_updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.serverUpdatedAtMs",
+            "columnName": "server_updated_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.deletedAtMs",
+            "columnName": "deleted_at_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sync.version",
+            "columnName": "version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sync.syncStatus",
+            "columnName": "sync_status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_planner_tasks_due_at_wall_ms",
+            "unique": false,
+            "columnNames": [
+              "due_at_wall_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_planner_tasks_due_at_wall_ms` ON `${TABLE_NAME}` (`due_at_wall_ms`)"
+          },
+          {
+            "name": "index_planner_tasks_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_planner_tasks_status` ON `${TABLE_NAME}` (`status`)"
+          },
+          {
+            "name": "index_planner_tasks_deleted_at_ms",
+            "unique": false,
+            "columnNames": [
+              "deleted_at_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_planner_tasks_deleted_at_ms` ON `${TABLE_NAME}` (`deleted_at_ms`)"
+          },
+          {
+            "name": "index_planner_tasks_owner_user_id",
+            "unique": false,
+            "columnNames": [
+              "owner_user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_planner_tasks_owner_user_id` ON `${TABLE_NAME}` (`owner_user_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "sync_cursors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`entity_table` TEXT NOT NULL, `last_server_updated_at_ms` INTEGER NOT NULL, `last_entity_id` TEXT NOT NULL, `updated_at_ms` INTEGER NOT NULL, PRIMARY KEY(`entity_table`))",
+        "fields": [
+          {
+            "fieldPath": "entityTable",
+            "columnName": "entity_table",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastServerUpdatedAtMs",
+            "columnName": "last_server_updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastEntityId",
+            "columnName": "last_entity_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMs",
+            "columnName": "updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "entity_table"
+          ]
+        }
+      },
+      {
+        "tableName": "social_circles",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `invite_code` TEXT NOT NULL, `created_by_user_id` TEXT NOT NULL, `created_at_ms` INTEGER NOT NULL, `deleted_at_ms` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "inviteCode",
+            "columnName": "invite_code",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdByUserId",
+            "columnName": "created_by_user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMs",
+            "columnName": "created_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deletedAtMs",
+            "columnName": "deleted_at_ms",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_social_circles_deleted_at_ms",
+            "unique": false,
+            "columnNames": [
+              "deleted_at_ms"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_social_circles_deleted_at_ms` ON `${TABLE_NAME}` (`deleted_at_ms`)"
+          }
+        ]
+      },
+      {
+        "tableName": "social_circle_memberships",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `circle_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `display_name` TEXT NOT NULL, `role` TEXT NOT NULL, `share_enabled` INTEGER NOT NULL, `share_live_focus_status` INTEGER NOT NULL, `allowed_subject_titles_csv` TEXT NOT NULL, `joined_at_ms` INTEGER NOT NULL, `left_at_ms` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "circleId",
+            "columnName": "circle_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "display_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shareEnabled",
+            "columnName": "share_enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shareLiveFocusStatus",
+            "columnName": "share_live_focus_status",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "allowedSubjectTitlesCsv",
+            "columnName": "allowed_subject_titles_csv",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "joinedAtMs",
+            "columnName": "joined_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "leftAtMs",
+            "columnName": "left_at_ms",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_social_circle_memberships_circle_id_user_id",
+            "unique": true,
+            "columnNames": [
+              "circle_id",
+              "user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_social_circle_memberships_circle_id_user_id` ON `${TABLE_NAME}` (`circle_id`, `user_id`)"
+          },
+          {
+            "name": "index_social_circle_memberships_circle_id",
+            "unique": false,
+            "columnNames": [
+              "circle_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_social_circle_memberships_circle_id` ON `${TABLE_NAME}` (`circle_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "social_member_summaries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `circle_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `display_name` TEXT NOT NULL, `period_type` TEXT NOT NULL, `period_start_date` TEXT NOT NULL, `live_timer_focus_sec` INTEGER NOT NULL, `manual_entry_focus_sec` INTEGER NOT NULL, `subject_totals_json` TEXT NOT NULL, `is_currently_focusing` INTEGER NOT NULL, `updated_at_ms` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "circleId",
+            "columnName": "circle_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "display_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "periodType",
+            "columnName": "period_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "periodStartDate",
+            "columnName": "period_start_date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liveTimerFocusSec",
+            "columnName": "live_timer_focus_sec",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "manualEntryFocusSec",
+            "columnName": "manual_entry_focus_sec",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subjectTotalsJson",
+            "columnName": "subject_totals_json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCurrentlyFocusing",
+            "columnName": "is_currently_focusing",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMs",
+            "columnName": "updated_at_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_social_member_summaries_circle_id_user_id_period_type_period_start_date",
+            "unique": true,
+            "columnNames": [
+              "circle_id",
+              "user_id",
+              "period_type",
+              "period_start_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_social_member_summaries_circle_id_user_id_period_type_period_start_date` ON `${TABLE_NAME}` (`circle_id`, `user_id`, `period_type`, `period_start_date`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ab2a3de14f8b8d3db48a045e0b921f44')"
+    ]
+  }
+}
