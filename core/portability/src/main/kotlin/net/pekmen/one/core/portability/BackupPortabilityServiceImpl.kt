@@ -1,9 +1,11 @@
 package net.pekmen.one.core.portability
 
 import android.database.sqlite.SQLiteConstraintException
+import android.database.sqlite.SQLiteException
 import androidx.room.withTransaction
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.SerializationException
 import net.pekmen.one.core.database.PekmenDatabase
 import net.pekmen.one.core.database.entity.FocusProfileEntity
 import net.pekmen.one.core.database.entity.FocusSessionEntity
@@ -77,15 +79,25 @@ class BackupPortabilityServiceImpl(
                 BackupValidationError.INVALID_FOREIGN_KEY,
                 "Database constraint failure during restore: ${err.message ?: "constraint error"}"
             )
+        } catch (err: SQLiteException) {
+            BackupImportResult.Failure(
+                BackupValidationError.IO_FAILURE,
+                "Database error during restore: ${err.message ?: "sqlite error"}"
+            )
         } catch (err: IOException) {
             BackupImportResult.Failure(
                 BackupValidationError.IO_FAILURE,
                 "I/O error while restoring preferences: ${err.message ?: "io failure"}"
             )
-        } catch (err: Exception) {
+        } catch (err: IllegalStateException) {
             BackupImportResult.Failure(
                 BackupValidationError.IO_FAILURE,
-                "Atomic restore rolled back: ${err.message ?: err::class.simpleName}"
+                "Atomic restore rolled back: ${err.message ?: "illegal state"}"
+            )
+        } catch (err: IllegalArgumentException) {
+            BackupImportResult.Failure(
+                BackupValidationError.INVALID_FIELD_BOUNDS,
+                "Invalid field value during restore: ${err.message ?: "invalid argument"}"
             )
         }
     }
@@ -157,13 +169,14 @@ class BackupPortabilityServiceImpl(
 
     private suspend fun restorePreferencesAtomically(target: BackupPreferences) {
         val previous = preferencesDataStore.preferences.first()
+        var committed = false
         try {
             applyBackupPreferences(target)
-        } catch (ce: CancellationException) {
-            throw ce
-        } catch (err: Throwable) {
-            runCatching { applyUserPreferences(previous) }
-            throw err
+            committed = true
+        } finally {
+            if (!committed) {
+                runCatching { applyUserPreferences(previous) }
+            }
         }
     }
 
@@ -194,7 +207,15 @@ class BackupPortabilityServiceImpl(
             Result.success(block())
         } catch (ce: CancellationException) {
             throw ce
-        } catch (err: Throwable) {
+        } catch (err: SerializationException) {
+            Result.failure(err)
+        } catch (err: SQLiteException) {
+            Result.failure(err)
+        } catch (err: IOException) {
+            Result.failure(err)
+        } catch (err: IllegalStateException) {
+            Result.failure(err)
+        } catch (err: IllegalArgumentException) {
             Result.failure(err)
         }
     }
