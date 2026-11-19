@@ -2,11 +2,14 @@ package net.pekmen.one
 
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
 import net.pekmen.one.core.designsystem.theme.PekmenOneTheme
 import net.pekmen.one.navigation.PekmenAppShell
@@ -38,7 +41,10 @@ class PekmenNavigationSmokeTest {
                     calendarInsertGateway = app.container.calendarInsertGateway,
                     userPreferencesRepository = app.container.userPreferencesRepository,
                     diagnosticsRepository = app.container.diagnosticsRepository,
-                    backupPortabilityService = app.container.backupPortabilityService
+                    backupPortabilityService = app.container.backupPortabilityService,
+                    cloudAccountRepository = app.container.cloudAccountRepository,
+                    circlesRepository = app.container.circlesRepository,
+                    cloudRlsGateProvider = app.container.cloudRlsGateProvider
                 )
             }
         }
@@ -59,6 +65,12 @@ class PekmenNavigationSmokeTest {
             composeRule.onAllNodesWithText("Last 7 days").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Last 7 days").assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Open Private Circles"))
+        composeRule.onNodeWithText("Open Private Circles").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Private Circles").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Offline mode active (cloud sync gated)").assertIsDisplayed()
         composeRule.onNodeWithText("Settings").performClick()
         composeRule.onNodeWithText("Dark (Midnight Violet)").assertIsDisplayed()
     }
@@ -79,7 +91,10 @@ class PekmenNavigationSmokeTest {
                     calendarInsertGateway = app.container.calendarInsertGateway,
                     userPreferencesRepository = app.container.userPreferencesRepository,
                     diagnosticsRepository = app.container.diagnosticsRepository,
-                    backupPortabilityService = app.container.backupPortabilityService
+                    backupPortabilityService = app.container.backupPortabilityService,
+                    cloudAccountRepository = app.container.cloudAccountRepository,
+                    circlesRepository = app.container.circlesRepository,
+                    cloudRlsGateProvider = app.container.cloudRlsGateProvider
                 )
             }
         }
@@ -100,6 +115,12 @@ class PekmenNavigationSmokeTest {
             composeRule.onAllNodesWithText("Son 7 gün").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Son 7 gün").assertIsDisplayed()
+        composeRule.onNode(hasScrollAction()).performScrollToNode(hasText("Özel Çemberleri Aç"))
+        composeRule.onNodeWithText("Özel Çemberleri Aç").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Özel Çemberler").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Çevrimdışı mod etkin (bulut eşitleme kapalı)").assertIsDisplayed()
         composeRule.onNodeWithText("Ayarlar").performClick()
         composeRule.onNodeWithText("Koyu (Midnight Violet)").assertIsDisplayed()
     }

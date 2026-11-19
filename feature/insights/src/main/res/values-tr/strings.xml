@@ -41,4 +41,8 @@
     <string name="insights_delete_confirm">Silmek için tekrar dokunun</string>
     <string name="insights_error_invalid_entry">Süreleri kontrol edin ve başlangıç zamanının gelecekte olmadığından emin olun.</string>
     <string name="insights_chart_cd">Haftalık net odak sütun grafiği</string>
+
+    <string name="insights_circles_card_title">Özel Çemberler</string>
+    <string name="insights_circles_card_body">Notlarınızı, kitaplarınızı ve görevlerinizi gizli tutarak küçük davetli çalışma gruplarıyla isteğe bağlı odak toplamlarını paylaşın.</string>
+    <string name="insights_circles_open_button">Özel Çemberleri Aç</string>
 </resources>

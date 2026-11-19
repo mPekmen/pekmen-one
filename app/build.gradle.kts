@@ -8,6 +8,12 @@ plugins {
     alias(libs.plugins.licensee)
 }
 
+val cloudEnabled = providers.gradleProperty("pekmen.cloudEnabled")
+    .map { it.toBooleanStrictOrNull() ?: false }
+    .getOrElse(false)
+val supabaseUrl = providers.gradleProperty("pekmen.supabaseUrl").getOrElse("")
+val supabaseAnonKey = providers.gradleProperty("pekmen.supabaseAnonKey").getOrElse("")
+
 android {
     namespace = "net.pekmen.one"
     compileSdk = 35
@@ -19,9 +25,22 @@ android {
         versionCode = 1
         versionName = "0.1.0-m1"
 
+        buildConfigField("boolean", "CLOUD_ENABLED", cloudEnabled.toString())
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         androidResources {
             localeFilters += listOf("en", "tr")
+        }
+    }
+
+    if (cloudEnabled) {
+        sourceSets.named("debug") {
+            manifest.srcFile("src/cloud/AndroidManifest.xml")
+        }
+        sourceSets.named("release") {
+            manifest.srcFile("src/cloud/AndroidManifest.xml")
         }
     }
 
@@ -94,10 +113,12 @@ dependencies {
     implementation(project(":core:platform"))
     implementation(project(":core:data"))
     implementation(project(":core:portability"))
+    implementation(project(":core:cloud"))
     implementation(project(":feature:focus"))
     implementation(project(":feature:learning"))
     implementation(project(":feature:planner"))
     implementation(project(":feature:insights"))
+    implementation(project(":feature:circles"))
     implementation(project(":feature:settings"))
 
     implementation(platform(libs.androidx.compose.bom))

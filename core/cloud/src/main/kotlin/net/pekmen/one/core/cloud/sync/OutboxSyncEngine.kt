@@ -3,11 +3,14 @@ package net.pekmen.one.core.cloud.sync
 import android.database.Cursor
 import androidx.room.withTransaction
 import androidx.sqlite.db.SimpleSQLiteQuery
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import net.pekmen.one.core.cloud.CloudRlsGateProvider
 import net.pekmen.one.core.cloud.auth.AuthSessionRecord
 import net.pekmen.one.core.cloud.auth.CloudRlsGatedException
@@ -45,7 +48,8 @@ class OutboxSyncEngine(
     private val rlsGateProvider: CloudRlsGateProvider,
     private val timeProvider: TimeProvider,
     private val pushBatchSize: Int = DEFAULT_PUSH_BATCH_SIZE,
-    private val pullPageSize: Int = DEFAULT_PULL_PAGE_SIZE
+    private val pullPageSize: Int = DEFAULT_PULL_PAGE_SIZE,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     private val syncOutboxDao = database.syncOutboxDao()
     private val recordStore = RoomSyncRecordStore(database)
@@ -75,7 +79,9 @@ class OutboxSyncEngine(
         runtimeStatus.value = SyncRuntimeSnapshot()
     }
 
-    suspend fun countUnclaimedGuestRecords(): Int = recordStore.countUnclaimedGuestRecords()
+    suspend fun countUnclaimedGuestRecords(): Int = withContext(ioDispatcher) {
+        recordStore.countUnclaimedGuestRecords()
+    }
 
     suspend fun readUnclaimedGuestPayloads(
         ownerUserId: String,
@@ -104,12 +110,12 @@ class OutboxSyncEngine(
         )
     }
 
-    suspend fun sync(session: AuthSessionRecord): Result<Int> {
+    suspend fun sync(session: AuthSessionRecord): Result<Int> = withContext(ioDispatcher) {
         val gate = rlsGateProvider.currentGateStatus()
         if (!gate.isLiveCloudEnabled) {
-            return Result.failure(CloudRlsGatedException(gate))
+            return@withContext Result.failure(CloudRlsGatedException(gate))
         }
-        return syncMutex.withLock {
+        syncMutex.withLock {
             runtimeStatus.value = runtimeStatus.value.copy(isSyncing = true, lastError = null)
             val pushResult = pushAllPending(session)
             val pushedCount = pushResult.getOrElse { err ->

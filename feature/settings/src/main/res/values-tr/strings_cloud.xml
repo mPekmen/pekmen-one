@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cloud_section_title">Hesap ve Bulut Eşitleme</string>
+    <string name="cloud_section_subtitle">İsteğe bağlı hesap eşitleme. Yerel Room veritabanınız her zaman birincil kaynak olarak kalır.</string>
+    <string name="cloud_gated_offline_body">Bu çevrimdışı öncelikli derlemede bulut eşitleme kapalıdır. Bulut bayrağı ve RLS doğrulaması etkinleşene kadar INTERNET izni kullanılmaz.</string>
+    <string name="cloud_gated_rls_body">Sunucu RLS doğrulaması henüz etkin işaretlenmedi; oturum açma ve ağ eşitleme güvenli şekilde çevrimdışı kilitli tutuluyor.</string>
+
+    <string name="cloud_guest_status">Konuk modu (yalnızca yerel)</string>
+    <string name="cloud_email_label">E-posta adresi</string>
+    <string name="cloud_otp_label">Tek kullanımlık doğrulama kodu</string>
+    <string name="cloud_send_code_button">Giriş kodu gönder</string>
+    <string name="cloud_verify_code_button">Doğrula ve oturum aç</string>
+
+    <string name="cloud_signed_in_as">%1$s olarak oturum açıldı</string>
+    <string name="cloud_sync_phase_offline">Çevrimdışı konuk modu</string>
+    <string name="cloud_sync_phase_gated">Bulut kilitli (RLS doğrulanmadı)</string>
+    <string name="cloud_sync_phase_idle">Güncel</string>
+    <string name="cloud_sync_phase_syncing">Değişiklikler eşitleniyor…</string>
+    <string name="cloud_sync_phase_error">Son eşitlemede hata oluştu; güvenle yeniden denenecek</string>
+    <string name="cloud_pending_mutations">Bekleyen yüklemeler: %1$s</string>
+    <string name="cloud_sync_now_button">Şimdi eşitle</string>
+    <string name="cloud_sign_out_button">Oturumu kapat</string>
+
+    <string name="cloud_claim_guest_prompt">%1$s yerel konuk kaydı bulundu. Hazır olduğunuzda bu hesaba aktarılsın mı?</string>
+    <string name="cloud_claim_guest_button">Konuk verilerini aktar</string>
+
+    <string name="cloud_logout_blocked_title">Eşitlenmemiş değişiklikler bekliyor</string>
+    <string name="cloud_logout_blocked_body">Eşitlenmemiş %1$s yerel değişiklik var. Çıkış yapmadan önce eşitleyin veya bekleyen kuyruğu temizleyerek çıkın.</string>
+    <string name="cloud_logout_discard_button">Bekleyenleri sil ve çık</string>
+
+    <string name="cloud_feedback_otp_sent">Tek kullanımlık kod için gelen kutunuzu kontrol edin.</string>
+    <string name="cloud_feedback_signed_in">Oturum açıldı.</string>
+    <string name="cloud_feedback_claimed">Konuk verileri hesabınıza aktarıldı.</string>
+    <string name="cloud_feedback_synced">Eşitleme tamamlandı.</string>
+    <string name="cloud_feedback_error">Bulut işlemi geçerli çevrimdışı/kilitli modda tamamlanamadı.</string>
+</resources>

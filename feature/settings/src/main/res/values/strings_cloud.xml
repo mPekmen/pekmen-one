@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cloud_section_title">Account &amp; Cloud Sync</string>
+    <string name="cloud_section_subtitle">Optional end-to-end encrypted account sync. Local storage remains your source of truth.</string>
+    <string name="cloud_gated_offline_body">Cloud sync is disabled in this offline-first build. Zero INTERNET permission is declared until you enable the cloud build flag and verify RLS.</string>
+    <string name="cloud_gated_rls_body">Backend RLS verification is not yet marked active, so cloud sign-in and network sync remain safely locked offline.</string>
+
+    <string name="cloud_guest_status">Guest mode (offline-only)</string>
+    <string name="cloud_email_label">Email address</string>
+    <string name="cloud_otp_label">One-time verification code</string>
+    <string name="cloud_send_code_button">Send login code</string>
+    <string name="cloud_verify_code_button">Verify &amp; sign in</string>
+
+    <string name="cloud_signed_in_as">Signed in as %1$s</string>
+    <string name="cloud_sync_phase_offline">Offline guest mode</string>
+    <string name="cloud_sync_phase_gated">Cloud gated (RLS unverified)</string>
+    <string name="cloud_sync_phase_idle">Up to date</string>
+    <string name="cloud_sync_phase_syncing">Syncing changes…</string>
+    <string name="cloud_sync_phase_error">Last sync hit an error; will retry safely</string>
+    <string name="cloud_pending_mutations">Pending uploads: %1$s</string>
+    <string name="cloud_sync_now_button">Sync now</string>
+    <string name="cloud_sign_out_button">Sign out</string>
+
+    <string name="cloud_claim_guest_prompt">%1$s local guest records found. Claim them into this account when ready?</string>
+    <string name="cloud_claim_guest_button">Claim guest data</string>
+
+    <string name="cloud_logout_blocked_title">Unsynced changes pending</string>
+    <string name="cloud_logout_blocked_body">You have %1$s unsynced local mutations. Sync before signing out, or discard pending queue entries for this session.</string>
+    <string name="cloud_logout_discard_button">Discard &amp; sign out</string>
+
+    <string name="cloud_feedback_otp_sent">Check your inbox for the one-time code.</string>
+    <string name="cloud_feedback_signed_in">Signed in cleanly.</string>
+    <string name="cloud_feedback_claimed">Guest data claimed into your account.</string>
+    <string name="cloud_feedback_synced">Sync finished.</string>
+    <string name="cloud_feedback_error">Cloud operation could not be completed in current offline/gated mode.</string>
+</resources>

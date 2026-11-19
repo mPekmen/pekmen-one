@@ -48,7 +48,10 @@ class MainActivity : ComponentActivity() {
                     calendarInsertGateway = appContainer.calendarInsertGateway,
                     userPreferencesRepository = appContainer.userPreferencesRepository,
                     diagnosticsRepository = appContainer.diagnosticsRepository,
-                    backupPortabilityService = appContainer.backupPortabilityService
+                    backupPortabilityService = appContainer.backupPortabilityService,
+                    cloudAccountRepository = appContainer.cloudAccountRepository,
+                    circlesRepository = appContainer.circlesRepository,
+                    cloudRlsGateProvider = appContainer.cloudRlsGateProvider
                 )
             }
         }

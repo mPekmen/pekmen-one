@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.pekmen.one.core.cloud.CloudAccountRepository
 import net.pekmen.one.core.data.FocusProfileRepository
 import net.pekmen.one.core.data.SaveProfileRequest
 import net.pekmen.one.core.data.SystemDiagnostics
@@ -36,14 +37,16 @@ data class SettingsUiState(
     val editingProfile: FocusProfile? = null,
     val isCreatingProfile: Boolean = false,
     val profileErrorRes: Int? = null,
-    val portability: PortabilityUiState = PortabilityUiState()
+    val portability: PortabilityUiState = PortabilityUiState(),
+    val cloud: AccountSyncUiState = AccountSyncUiState()
 )
 
 class SettingsViewModel(
     private val preferencesRepository: UserPreferencesRepository,
     private val profileRepository: FocusProfileRepository,
     private val diagnosticsRepository: SystemDiagnosticsRepository,
-    private val backupPortabilityService: BackupPortabilityService? = null
+    private val backupPortabilityService: BackupPortabilityService? = null,
+    cloudAccountRepository: CloudAccountRepository? = null
 ) : ViewModel() {
 
     private val diagnosticsFlow = MutableStateFlow(diagnosticsRepository.refreshDiagnostics())
@@ -51,6 +54,7 @@ class SettingsViewModel(
     private val isCreatingProfile = MutableStateFlow(false)
     private val profileErrorRes = MutableStateFlow<Int?>(null)
     private val portabilityFlow = MutableStateFlow(PortabilityUiState())
+    private val cloudCoordinator = AccountSyncCoordinator(cloudAccountRepository, viewModelScope)
 
     private val editorState = combine(
         editingProfile,
@@ -60,13 +64,20 @@ class SettingsViewModel(
         Triple(editing, creating, err)
     }
 
+    private val sectionExtras = combine(
+        portabilityFlow,
+        cloudCoordinator.state
+    ) { portability, cloud ->
+        portability to cloud
+    }
+
     val uiState: StateFlow<SettingsUiState> = combine(
         preferencesRepository.preferences,
         profileRepository.profiles,
         diagnosticsFlow,
         editorState,
-        portabilityFlow
-    ) { prefs, profiles, diag, (editing, creating, err), portability ->
+        sectionExtras
+    ) { prefs, profiles, diag, (editing, creating, err), (portability, cloud) ->
         SettingsUiState(
             preferences = prefs,
             profiles = profiles,
@@ -74,7 +85,8 @@ class SettingsViewModel(
             editingProfile = editing,
             isCreatingProfile = creating,
             profileErrorRes = err,
-            portability = portability
+            portability = portability,
+            cloud = cloud
         )
     }.stateIn(
         scope = viewModelScope,
@@ -108,6 +120,10 @@ class SettingsViewModel(
 
     fun setRoutineKeywordEnabled(enabled: Boolean) {
         viewModelScope.launch { preferencesRepository.setRoutineKeywordEnabled(enabled) }
+    }
+
+    fun onCloudAction(action: CloudAccountAction) {
+        cloudCoordinator.dispatch(action)
     }
 
     fun openEditProfile(profile: FocusProfile) {

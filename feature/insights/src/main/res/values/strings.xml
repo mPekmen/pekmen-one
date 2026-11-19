@@ -41,4 +41,8 @@
     <string name="insights_delete_confirm">Tap again to delete</string>
     <string name="insights_error_invalid_entry">Check duration and ensure start time is not in the future.</string>
     <string name="insights_chart_cd">Weekly net focus bar chart</string>
+
+    <string name="insights_circles_card_title">Private Circles</string>
+    <string name="insights_circles_card_body">Share opt-in focus totals with small invite-only study groups while keeping notes, books, and tasks private.</string>
+    <string name="insights_circles_open_button">Open Private Circles</string>
 </resources>

@@ -41,7 +41,7 @@ class CirclesRepositoryImpl(
 ) : CirclesRepository, CirclesSyncSupport {
 
     private val circleDao = database.socialCircleDao()
-    private val portabilityDao = database.portabilityDao()
+    private val accountSessionDao = database.accountSessionDao()
     private val learningDao = database.learningDao()
 
     private val activeOwnerFlow: Flow<String?> = preferencesDataStore.preferences
@@ -234,7 +234,7 @@ class CirclesRepositoryImpl(
         } else {
             val dailyWindow = CircleSummaryProjector.periodWindow(CirclePeriodType.DAILY, effectiveToday)
             val weeklyWindow = CircleSummaryProjector.periodWindow(CirclePeriodType.WEEKLY, effectiveToday)
-            val sessions = portabilityDao.getCompletedSessionsOnce(
+            val sessions = accountSessionDao.getCompletedSessionsOnce(
                 startDate = weeklyWindow.startDate.toString(),
                 endDate = weeklyWindow.endDate.toString(),
                 ownerUserId = userId

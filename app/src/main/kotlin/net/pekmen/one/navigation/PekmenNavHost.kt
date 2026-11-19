@@ -9,12 +9,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.map
+import net.pekmen.one.core.cloud.CirclesRepository
+import net.pekmen.one.core.cloud.CloudAccountRepository
+import net.pekmen.one.core.cloud.CloudRlsGateProvider
 import net.pekmen.one.core.data.FocusHistoryRepository
 import net.pekmen.one.core.data.FocusProfileRepository
 import net.pekmen.one.core.data.FocusSessionRepository
@@ -28,8 +33,13 @@ import net.pekmen.one.core.designsystem.R
 import net.pekmen.one.core.designsystem.component.PekmenAdaptiveScaffold
 import net.pekmen.one.core.designsystem.component.PekmenNavDestination
 import net.pekmen.one.core.designsystem.icon.PekmenIcons
+import net.pekmen.one.core.model.CloudRlsGateStatus
+import net.pekmen.one.core.model.FocusSessionStatus
 import net.pekmen.one.core.model.SessionLearningLink
 import net.pekmen.one.core.portability.BackupPortabilityService
+import net.pekmen.one.feature.circles.CirclesRoute
+import net.pekmen.one.feature.circles.CirclesTabRoute
+import net.pekmen.one.feature.circles.CirclesViewModel
 import net.pekmen.one.feature.focus.FocusRoute
 import net.pekmen.one.feature.focus.FocusViewModel
 import net.pekmen.one.feature.insights.InsightsRoute
@@ -53,7 +63,10 @@ fun PekmenAppShell(
     modifier: Modifier = Modifier,
     plannerRepository: PlannerRepository? = null,
     calendarInsertGateway: CalendarInsertGateway = PlatformCalendarInsertGateway(),
-    backupPortabilityService: BackupPortabilityService? = null
+    backupPortabilityService: BackupPortabilityService? = null,
+    cloudAccountRepository: CloudAccountRepository? = null,
+    circlesRepository: CirclesRepository? = null,
+    cloudRlsGateProvider: CloudRlsGateProvider? = null
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -70,67 +83,18 @@ fun PekmenAppShell(
         }
     }
 
-    val destinations = buildList {
-        add(
-            PekmenNavDestination(
-                id = NAV_ID_FOCUS,
-                labelRes = R.string.nav_focus,
-                iconRes = PekmenIcons.Focus
-            )
-        )
-        add(
-            PekmenNavDestination(
-                id = NAV_ID_LEARNING,
-                labelRes = R.string.nav_learning,
-                iconRes = PekmenIcons.Book
-            )
-        )
-        if (plannerRepository != null) {
-            add(
-                PekmenNavDestination(
-                    id = NAV_ID_PLANNER,
-                    labelRes = R.string.nav_planner,
-                    iconRes = PekmenIcons.Calendar
-                )
-            )
-        }
-        add(
-            PekmenNavDestination(
-                id = NAV_ID_INSIGHTS,
-                labelRes = R.string.nav_insights,
-                iconRes = PekmenIcons.Insights
-            )
-        )
-        add(
-            PekmenNavDestination(
-                id = NAV_ID_SETTINGS,
-                labelRes = R.string.nav_settings,
-                iconRes = PekmenIcons.Settings
-            )
-        )
+    val destinations = remember(plannerRepository != null) {
+        buildTopLevelDestinations(includePlanner = plannerRepository != null)
     }
 
-    val selectedId = when {
-        currentDestination?.hasRoute<LearningRoute>() == true -> NAV_ID_LEARNING
-        currentDestination?.hasRoute<PlannerRoute>() == true -> NAV_ID_PLANNER
-        currentDestination?.hasRoute<InsightsRoute>() == true -> NAV_ID_INSIGHTS
-        currentDestination?.hasRoute<SettingsRoute>() == true -> NAV_ID_SETTINGS
-        else -> NAV_ID_FOCUS
-    }
+    val selectedId = resolveSelectedNavId(currentDestination)
 
     PekmenAdaptiveScaffold(
         destinations = destinations,
         selectedDestinationId = selectedId,
         useNavigationRail = widthSizeClass != WindowWidthSizeClass.Compact,
         onSelectDestination = { targetId ->
-            val route: Any = when (targetId) {
-                NAV_ID_LEARNING -> LearningRoute
-                NAV_ID_PLANNER -> PlannerRoute
-                NAV_ID_INSIGHTS -> InsightsRoute
-                NAV_ID_SETTINGS -> SettingsRoute
-                else -> FocusRoute
-            }
-            navigateToTopLevel(route)
+            navigateToTopLevel(resolveRouteForNavId(targetId))
         },
         modifier = modifier
     ) {
@@ -211,7 +175,33 @@ fun PekmenAppShell(
                         learningRepository = learningRepository
                     )
                 }
-                InsightsRoute(viewModel = vm)
+                val openCirclesAction: (() -> Unit)? = if (circlesRepository != null) {
+                    {
+                        navController.navigate(CirclesRoute) {
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    null
+                }
+                InsightsRoute(viewModel = vm, onOpenCircles = openCirclesAction)
+            }
+            if (circlesRepository != null) {
+                composable<CirclesRoute> {
+                    val vm: CirclesViewModel = viewModel {
+                        CirclesViewModel(
+                            circlesRepository = circlesRepository,
+                            preferencesRepository = userPreferencesRepository,
+                            diagnosticsRepository = diagnosticsRepository,
+                            gateStatusProvider = { resolveRlsGateStatus(cloudRlsGateProvider) },
+                            availableSubjectsFlow = learningRepository.observeSubjects()
+                                .map { subjects -> subjects.map { it.title } },
+                            isCurrentlyFocusingFlow = sessionRepository.activeSession
+                                .map { snapshot -> snapshot?.session?.status == FocusSessionStatus.RUNNING }
+                        )
+                    }
+                    CirclesTabRoute(viewModel = vm)
+                }
             }
             composable<SettingsRoute> {
                 val vm: SettingsViewModel = viewModel {
@@ -219,7 +209,8 @@ fun PekmenAppShell(
                         preferencesRepository = userPreferencesRepository,
                         profileRepository = profileRepository,
                         diagnosticsRepository = diagnosticsRepository,
-                        backupPortabilityService = backupPortabilityService
+                        backupPortabilityService = backupPortabilityService,
+                        cloudAccountRepository = cloudAccountRepository
                     )
                 }
                 SettingsRoute(viewModel = vm)
@@ -227,6 +218,40 @@ fun PekmenAppShell(
         }
     }
 }
+
+private fun buildTopLevelDestinations(includePlanner: Boolean): List<PekmenNavDestination> = buildList {
+    add(PekmenNavDestination(id = NAV_ID_FOCUS, labelRes = R.string.nav_focus, iconRes = PekmenIcons.Focus))
+    add(PekmenNavDestination(id = NAV_ID_LEARNING, labelRes = R.string.nav_learning, iconRes = PekmenIcons.Book))
+    if (includePlanner) {
+        add(PekmenNavDestination(id = NAV_ID_PLANNER, labelRes = R.string.nav_planner, iconRes = PekmenIcons.Calendar))
+    }
+    add(PekmenNavDestination(id = NAV_ID_INSIGHTS, labelRes = R.string.nav_insights, iconRes = PekmenIcons.Insights))
+    add(PekmenNavDestination(id = NAV_ID_SETTINGS, labelRes = R.string.nav_settings, iconRes = PekmenIcons.Settings))
+}
+
+private fun resolveSelectedNavId(currentDestination: NavDestination?): String = when {
+    currentDestination?.hasRoute<LearningRoute>() == true -> NAV_ID_LEARNING
+    currentDestination?.hasRoute<PlannerRoute>() == true -> NAV_ID_PLANNER
+    currentDestination?.hasRoute<InsightsRoute>() == true -> NAV_ID_INSIGHTS
+    currentDestination?.hasRoute<CirclesRoute>() == true -> NAV_ID_INSIGHTS
+    currentDestination?.hasRoute<SettingsRoute>() == true -> NAV_ID_SETTINGS
+    else -> NAV_ID_FOCUS
+}
+
+private fun resolveRouteForNavId(targetId: String): Any = when (targetId) {
+    NAV_ID_LEARNING -> LearningRoute
+    NAV_ID_PLANNER -> PlannerRoute
+    NAV_ID_INSIGHTS -> InsightsRoute
+    NAV_ID_SETTINGS -> SettingsRoute
+    else -> FocusRoute
+}
+
+private fun resolveRlsGateStatus(provider: CloudRlsGateProvider?): CloudRlsGateStatus =
+    provider?.currentGateStatus() ?: CloudRlsGateStatus(
+        compiledWithCloudFlag = false,
+        backendEndpointConfigured = false,
+        rlsVerified = false
+    )
 
 private const val NAV_ID_FOCUS = "focus"
 private const val NAV_ID_LEARNING = "learning"

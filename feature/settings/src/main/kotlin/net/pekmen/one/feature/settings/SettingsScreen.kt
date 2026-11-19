@@ -97,6 +97,7 @@ fun SettingsRoute(
         onExportBackupJson = { viewModel.exportBackupJson(it, resolver) },
         onRestoreBackupJson = { viewModel.restoreBackupJson(it, resolver) },
         onExportCsv = { target, uri -> viewModel.exportCsv(target, uri, resolver) },
+        onCloudAction = viewModel::onCloudAction,
         modifier = modifier
     )
 }
@@ -117,7 +118,8 @@ fun SettingsScreen(
     onToggleRoutineKeyword: (Boolean) -> Unit = {},
     onExportBackupJson: (Uri) -> Unit = {},
     onRestoreBackupJson: (Uri) -> Unit = {},
-    onExportCsv: (PortabilityCsvTarget, Uri) -> Unit = { _, _ -> }
+    onExportCsv: (PortabilityCsvTarget, Uri) -> Unit = { _, _ -> },
+    onCloudAction: (CloudAccountAction) -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -190,6 +192,15 @@ fun SettingsScreen(
                     onRestoreBackupJson = onRestoreBackupJson,
                     onExportCsv = onExportCsv
                 )
+            }
+
+            if (state.cloud.isAvailable) {
+                item {
+                    AccountSyncSection(
+                        state = state.cloud,
+                        onAction = onCloudAction
+                    )
+                }
             }
 
             item {

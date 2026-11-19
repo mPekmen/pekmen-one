@@ -55,7 +55,8 @@ import java.text.NumberFormat
 @Composable
 fun InsightsRoute(
     viewModel: InsightsViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onOpenCircles: (() -> Unit)? = null
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -68,6 +69,7 @@ fun InsightsRoute(
         onDismissEdit = viewModel::dismissEditSheet,
         onSaveEdit = viewModel::saveEditedSession,
         onDeleteSession = viewModel::deleteSession,
+        onOpenCircles = onOpenCircles,
         modifier = modifier
     )
 }
@@ -82,7 +84,8 @@ fun InsightsScreen(
     onDismissEdit: () -> Unit,
     onSaveEdit: (String, Int, Int, String, Int?, String?) -> Unit,
     onDeleteSession: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onOpenCircles: (() -> Unit)? = null
 ) {
     val subjectsById = state.subjectWeeklyProgress.associate { it.subject.id to it.subject }
     val booksById = state.subjectWeeklyProgress
@@ -143,6 +146,12 @@ fun InsightsScreen(
             if (state.subjectWeeklyProgress.isNotEmpty()) {
                 item {
                     WeeklySubjectGoalsCard(items = state.subjectWeeklyProgress)
+                }
+            }
+
+            if (onOpenCircles != null) {
+                item {
+                    PrivateCirclesEntryCard(onOpenCircles = onOpenCircles)
                 }
             }
 
@@ -563,5 +572,47 @@ private fun MetricCell(
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
+    }
+}
+
+@Composable
+private fun PrivateCirclesEntryCard(onOpenCircles: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(PekmenIcons.Group),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = stringResource(R.string.insights_circles_card_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Text(
+                text = stringResource(R.string.insights_circles_card_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            FilledTonalButton(
+                onClick = onOpenCircles,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+            ) {
+                Text(text = stringResource(R.string.insights_circles_open_button))
+            }
+        }
     }
 }

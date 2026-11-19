@@ -57,26 +57,6 @@ import net.pekmen.one.core.model.CirclePeriodType
 import net.pekmen.one.core.model.CircleSharingConfig
 import net.pekmen.one.core.model.SocialCircle
 
-data class CirclesScreenActions(
-    val onSelectCircle: (String) -> Unit = {},
-    val onSelectPeriod: (CirclePeriodType) -> Unit = {},
-    val onOpenCreateDialog: () -> Unit = {},
-    val onDismissCreateDialog: () -> Unit = {},
-    val onCreateCircle: (String, String) -> Unit = { _, _ -> },
-    val onOpenJoinDialog: () -> Unit = {},
-    val onDismissJoinDialog: () -> Unit = {},
-    val onJoinCircle: (String, String) -> Unit = { _, _ -> },
-    val onOpenLeaveConfirm: () -> Unit = {},
-    val onDismissLeaveConfirm: () -> Unit = {},
-    val onLeaveCircle: () -> Unit = {},
-    val onSetShareEnabled: (Boolean) -> Unit = {},
-    val onSetShareLiveStatus: (Boolean) -> Unit = {},
-    val onToggleSubject: (String) -> Unit = {},
-    val onAddCustomSubject: (String) -> Unit = {},
-    val onRefresh: () -> Unit = {},
-    val onDismissError: () -> Unit = {}
-)
-
 @Composable
 fun CirclesTabRoute(
     viewModel: CirclesViewModel,
@@ -178,9 +158,15 @@ fun CirclesScreen(
                     item {
                         PrivacySharingCard(
                             config = state.myMembership?.sharingConfig ?: CircleSharingConfig(),
-                            availableSubjects = state.availableSubjectTitles,
                             onSetShareEnabled = actions.onSetShareEnabled,
-                            onSetShareLiveStatus = actions.onSetShareLiveStatus,
+                            onSetShareLiveStatus = actions.onSetShareLiveStatus
+                        )
+                    }
+
+                    item {
+                        SubjectWhitelistCard(
+                            config = state.myMembership?.sharingConfig ?: CircleSharingConfig(),
+                            availableSubjects = state.availableSubjectTitles,
                             onToggleSubject = actions.onToggleSubject,
                             onAddCustomSubject = actions.onAddCustomSubject
                         )
@@ -469,18 +455,12 @@ private fun SelectedCircleSummaryCard(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PrivacySharingCard(
     config: CircleSharingConfig,
-    availableSubjects: List<String>,
     onSetShareEnabled: (Boolean) -> Unit,
-    onSetShareLiveStatus: (Boolean) -> Unit,
-    onToggleSubject: (String) -> Unit,
-    onAddCustomSubject: (String) -> Unit
+    onSetShareLiveStatus: (Boolean) -> Unit
 ) {
-    var newSubjectInput by rememberSaveable { mutableStateOf("") }
-
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth()
@@ -528,9 +508,28 @@ private fun PrivacySharingCard(
                 enabled = config.shareEnabled,
                 onCheckedChange = onSetShareLiveStatus
             )
+        }
+    }
+}
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SubjectWhitelistCard(
+    config: CircleSharingConfig,
+    availableSubjects: List<String>,
+    onToggleSubject: (String) -> Unit,
+    onAddCustomSubject: (String) -> Unit
+) {
+    var newSubjectInput by rememberSaveable { mutableStateOf("") }
 
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Text(
                 text = stringResource(R.string.circles_subjects_title),
                 style = MaterialTheme.typography.titleSmall,

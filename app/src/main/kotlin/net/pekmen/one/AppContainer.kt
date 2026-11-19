@@ -3,6 +3,9 @@ package net.pekmen.one
 import android.content.ComponentName
 import android.content.Context
 import kotlinx.coroutines.flow.first
+import net.pekmen.one.core.cloud.CirclesRepository
+import net.pekmen.one.core.cloud.CloudAccountRepository
+import net.pekmen.one.core.cloud.CloudRlsGateProvider
 import net.pekmen.one.core.data.FocusHistoryRepository
 import net.pekmen.one.core.data.FocusHistoryRepositoryImpl
 import net.pekmen.one.core.data.FocusPlatformTriggerAdapter
@@ -226,4 +229,22 @@ class AppContainer(context: Context) {
     val backupPortabilityService: BackupPortabilityService by lazy {
         BackupPortabilityServiceImpl(database, userPreferencesDataStore, timeProvider)
     }
+
+    private val cloudSlice: CloudContainerSlice by lazy {
+        CloudContainerSlice(
+            appContext = appContext,
+            database = database,
+            userPreferencesDataStore = userPreferencesDataStore,
+            timeProvider = timeProvider
+        )
+    }
+
+    val cloudRlsGateProvider: CloudRlsGateProvider
+        get() = cloudSlice.cloudRlsGateProvider
+
+    val cloudAccountRepository: CloudAccountRepository
+        get() = cloudSlice.cloudAccountRepository
+
+    val circlesRepository: CirclesRepository
+        get() = cloudSlice.circlesRepository
 }

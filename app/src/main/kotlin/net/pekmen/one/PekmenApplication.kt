@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import net.pekmen.one.core.cloud.sync.SyncTriggerProvider
 import net.pekmen.one.core.platform.FocusTriggerHandler
 import net.pekmen.one.core.platform.FocusTriggerProvider
 import net.pekmen.one.core.platform.planner.TaskReminderTriggerHandler
@@ -17,7 +18,8 @@ class PekmenApplication :
     Application(),
     FocusTriggerProvider,
     TaskReminderTriggerProvider,
-    FocusTileBridgeProvider {
+    FocusTileBridgeProvider,
+    SyncTriggerProvider {
     lateinit var container: AppContainer
         private set
 
@@ -41,4 +43,8 @@ class PekmenApplication :
     override fun focusTileStateBridge(): FocusTileStateBridge = container.focusTileStateBridge
 
     override fun launcherActivityClass(): Class<out Activity> = MainActivity::class.java
+
+    override fun syncRunner(): suspend () -> Result<Int> = {
+        container.cloudAccountRepository.triggerSyncNow()
+    }
 }
