@@ -372,8 +372,9 @@ class PlannerRepositoryImpl(
         ownerId: String?,
         syncStatus: String
     ): PlannerTaskEntity {
+        val completedDue = completed.dueAtWallMs
         val nextDue = when {
-            completed.dueAtWallMs != null -> advanceWallTime(completed.dueAtWallMs, rule, zoneId)
+            completedDue != null -> advanceWallTime(completedDue, rule, zoneId)
             completed.reminderAtWallMs == null -> advanceWallTime(now, rule, zoneId)
             else -> null
         }
