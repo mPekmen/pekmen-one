@@ -2,6 +2,7 @@ package net.pekmen.one
 
 import android.app.Activity
 import android.app.Application
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +43,18 @@ class PekmenApplication :
             )
         } else {
             null
+        }
+        // Debug-only diagnostics: never print the Supabase key, URL, tokens or user data.
+        // Keep this outside the client so a rejected config can still be diagnosed.
+        if (BuildConfig.DEBUG) {
+            Log.i(
+                "PekmenAuthConfig",
+                "cloudEnabled=${BuildConfig.CLOUD_ENABLED}, " +
+                    "urlPresent=${BuildConfig.SUPABASE_URL.isNotBlank()}, " +
+                    "keyPresent=${BuildConfig.SUPABASE_ANON_KEY.isNotBlank()}, " +
+                    "redirectHostPresent=${BuildConfig.AUTH_REDIRECT_HOST.isNotBlank()}, " +
+                    "parseSucceeded=${config != null}"
+            )
         }
         accounts = PekmenAccounts(this, applicationScope, config)
         container.appShortcutsPublisher.publishDynamicShortcuts()
