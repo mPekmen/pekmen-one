@@ -62,7 +62,14 @@ internal fun AuthScreen(accounts: PekmenAccounts, linkError: IdentityError?) {
         password = ""
         action.clear()
     }
-    BackHandler(page != AuthPage.WELCOME && !action.busy) { goTo(AuthPage.WELCOME) }
+    val goBack = {
+        val previous = when (page) {
+            AuthPage.RESET, AuthPage.RESET_SENT, AuthPage.VERIFY -> AuthPage.SIGN_IN
+            else -> AuthPage.WELCOME
+        }
+        goTo(previous)
+    }
+    BackHandler(page != AuthPage.WELCOME && !action.busy, goBack)
 
     AccountPage {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge)
@@ -154,7 +161,7 @@ internal fun AuthScreen(accounts: PekmenAccounts, linkError: IdentityError?) {
             if (!accounts.hasVerificationLinks) Message(R.string.auth_redirect_missing)
         }
         if (page != AuthPage.WELCOME) {
-            TextButton(onClick = { goTo(AuthPage.WELCOME) }, enabled = !action.busy) {
+            TextButton(onClick = goBack, enabled = !action.busy) {
                 Text(stringResource(R.string.account_back))
             }
         }

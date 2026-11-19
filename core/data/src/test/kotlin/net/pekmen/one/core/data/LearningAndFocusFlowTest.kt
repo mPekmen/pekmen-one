@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.pekmen.one.core.database.PekmenDatabase
+import net.pekmen.one.core.database.entity.PlannerTaskEntity
+import net.pekmen.one.core.database.entity.SyncMetadataEntity
 import net.pekmen.one.core.datastore.UserPreferencesDataStore
 import net.pekmen.one.core.model.BuiltInProfiles
 import net.pekmen.one.core.model.FocusPhase
@@ -128,6 +130,31 @@ class LearningAndFocusFlowTest {
         val remaining = bundle.learning.observeTopics(lesson.id).first().single()
         assertEquals(child.id, remaining.id)
         assertNull(remaining.parentTopicId)
+    }
+
+    @Test
+    fun `focus only accepts an existing open task from the active owner`() = runTest {
+        val bundle = openStack()
+        val dao = bundle.database.plannerTaskDao()
+        val task = PlannerTaskEntity(
+            id = "test-planner-task",
+            title = "Read with focus",
+            sync = SyncMetadataEntity(ownerUserId = "account-a", createdAtMs = 1, clientUpdatedAtMs = 1)
+        )
+        val link = SessionLearningLink(taskId = task.id)
+        val profile = BuiltInProfiles.STUDY_ID
+        val mode = FocusSessionMode.STOPWATCH
+        bundle.dataStore.setActiveOwnerUserId("account-b")
+        dao.upsertTask(task)
+        assertTrue(bundle.sessions.startSession(profile, mode, link = link).isFailure)
+
+        bundle.dataStore.setActiveOwnerUserId("account-a")
+        dao.softDeleteTask(task.id, 2, 2)
+        assertTrue(bundle.sessions.startSession(profile, mode, link = link).isFailure)
+
+        dao.upsertTask(task)
+        val session = bundle.sessions.startSession(profile, mode, link = link).getOrThrow()
+        assertEquals(task.id, session.taskId)
     }
 
     @Test

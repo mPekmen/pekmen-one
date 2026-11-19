@@ -168,13 +168,15 @@ internal class PekmenAccounts(
     }
 
     suspend fun signOut() {
-        val previous = lock.withLock {
-            val current = session
-            lockAccount(clearVault = true)
-            links?.clear()
-            current
+        withContext(NonCancellable) {
+            val previous = lock.withLock {
+                val current = session
+                lockAccount(clearVault = true)
+                links?.clear()
+                current
+            }
+            if (previous != null) scope.launch { noThrowRevoke(previous) }
         }
-        if (previous != null) noThrowRevoke(previous)
     }
 
     suspend fun saveDraft(account: ActiveAccount, incoming: PersonalSetup) = lock.withLock {
@@ -203,9 +205,11 @@ internal class PekmenAccounts(
             completed = false
         )
         container.userPreferencesDataStore.savePersonalSetup(pending)
+        accessState.value = active.copy(setup = pending)
+        auth().updateProfile(freshAccessToken(), pending.name, pending.username)
         lessonId?.let { container.ensureFirstLesson(it, pending.firstLesson, pending.weeklyGoalMinutes) }
         val completed = pending.copy(completed = true)
-        container.userPreferencesDataStore.savePersonalSetup(completed)
+        container.userPreferencesDataStore.savePersonalSetup(completed, applySelectedProfile = true)
         exposeAccount(active.copy(setup = completed))
     }
 
@@ -213,8 +217,32 @@ internal class PekmenAccounts(
         val active = checkAccount(account)
         val updated = active.setup.copy(name = name.trim(), username = username.trim().lowercase())
         require(updated.hasValidIdentity())
+        auth().updateProfile(freshAccessToken(), updated.name, updated.username)
+        account.container.userPreferencesDataStore.savePersonalSetup(updated)
+        accessState.value = active.copy(setup = updated)
+    }
+
+    suspend fun updateFocusPreferences(account: ActiveAccount, draft: PersonalSetup) = lock.withLock {
+        val active = checkAccount(account)
+        check(active.setup.completed)
+        require(draft.purpose.isNotBlank() && draft.categories.isNotEmpty() && draft.hasValidGoals())
+        require(account.container.profileRepository.profiles.first().any { it.id == draft.profileId })
+        val updated = active.setup.copy(
+            purpose = draft.purpose.trim(),
+            categories = draft.categories,
+            dailyGoalMinutes = draft.dailyGoalMinutes,
+            weeklyGoalMinutes = draft.weeklyGoalMinutes,
+            profileId = draft.profileId
+        )
+        account.container.userPreferencesDataStore.savePersonalSetup(
+            updated, applySelectedProfile = active.setup.profileId != updated.profileId
+        )
+        accessState.value = active.copy(setup = updated)
+    }
+
+    private suspend fun freshAccessToken(): String {
         val local = requireNotNull(session)
-        val token = if (now() >= local.expiresAtWallMs - REFRESH_MARGIN_MS) {
+        return if (now() >= local.expiresAtWallMs - REFRESH_MARGIN_MS) {
             auth().refresh(local.refreshToken).also {
                 verifySameOwner(local, it)
                 requireNotNull(vault).saveSession(it)
@@ -224,9 +252,6 @@ internal class PekmenAccounts(
         } else {
             local.accessToken
         }
-        auth().updateProfile(token, updated.name, updated.username)
-        account.container.userPreferencesDataStore.savePersonalSetup(updated)
-        accessState.value = active.copy(setup = updated)
     }
 
     suspend fun legacyCount(account: ActiveAccount): Int = lock.withLock {

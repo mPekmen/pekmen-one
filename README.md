@@ -2,9 +2,9 @@
 
 Open-source (**AGPL-3.0**) offline-first personal focus OS and learning companion for Android, built natively with **Kotlin, Jetpack Compose, Material 3, Room, and DataStore**.
 
-> **Current Status:** M0 (Modular Foundation, Midnight Violet Design System, Localization, CI & Security Baseline) and M1 (Offline-First Focus Engine, Reboot-Safe Recovery, Manual Adjustments & Real Summaries) are implemented on `feat/m0-m1-foundation`. M2–M6 (Learning subjects/books, Planner/Calendar, Samsung Routine bridges, Supabase Auth/Sync, Private Circles, AI) are planned for upcoming milestones.
+> **Current development:** V2 builds on the existing modular application. Personal screens require a Supabase account and completed setup. See [V2 staging setup](docs/V2_STAGING.md) for testing account flows.
 
-## Key Implemented Features (M0 + M1)
+## Key Features
 
 - **Midnight Violet & Daylight Violet Theme:** Follows Android system dark/light theme automatically (with manual override), WCAG-checked contrast, tabular numerals (`tnum`), and adaptive `NavigationBar` / `NavigationRail` layouts.
 - **Bilingual Native Localization:** Full **English** and **Turkish** (`values` + `values-tr`) resources with localized date, time, and number formatting.
@@ -14,7 +14,8 @@ Open-source (**AGPL-3.0**) offline-first personal focus OS and learning companio
   - **Process-death continuity** via `SystemClock.elapsedRealtime()` and **device reboot protection** via `BOOT_COUNT` checkpoints (powered-off time is never counted as focus).
   - **Session wrap-up & manual corrections:** Trim/adjust duration, rate focus quality (1–5), add reflection notes, or log past sessions retroactively.
   - **Real Daily & Weekly Summaries:** Custom `dayRolloverHour` (default `04:00`), Canvas 7-day charts, and profile breakdowns driven directly by Room SQLite.
-- **Security-First Offline Isolation:** Zero `INTERNET` permission in M0–M1, `android:allowBackup="false"`, private lock-screen notifications, non-exported internal receivers, and automated Gitleaks/Lint/Licensee checks.
+- **Personal storage:** Each verified account uses its own Room database and preferences. Authentication credentials use Android Keystore encryption, and Android system backups are disabled.
+- **Account and setup:** Supabase email and Google sign-in, personal goals and focus preferences, and an opt-in import for eligible records from earlier installs.
 
 ## Tech Stack
 
@@ -24,14 +25,14 @@ Open-source (**AGPL-3.0**) offline-first personal focus OS and learning companio
 
 ## Local Build & Verification
 
-1. Ensure **JDK 21** and **Android SDK** (API 35) are configured, and set `sdk.dir=...` in untracked `local.properties`.
+1. Configure a full **JDK 21** with `jlink` and **Android SDK** (API 35). Set `ANDROID_HOME` or use an untracked `local.properties` with `sdk.dir=...`.
 2. Run static analysis, license audit, unit/data tests, and debug APK build:
    ```bash
-   ./gradlew detekt lintDebug licenseeDebug testDebugUnitTest assembleDebug
+   ./gradlew detekt lintDebug licenseeDebug :core:model:test testDebugUnitTest assembleDebug
    ```
 3. Run the local security & merged-manifest audit (PowerShell):
    ```powershell
-   ./scripts/verify-security.ps1
+   ./scripts/verify-security.ps1 -AllowCloudPermissions
    ```
 
 ## License

@@ -57,8 +57,8 @@ data class SubjectWeeklyProgress(
 ) {
     val goalProgressFraction: Float
         get() {
-            val goalSec = (subject.weeklyGoalMinutes * 60L).coerceAtLeast(1L)
-            return (netFocusSecondsThisWeek.toFloat() / goalSec.toFloat()).coerceIn(0f, 1f)
+            val goalSec = subject.weeklyGoalMinutes * 60L
+            return if (goalSec > 0) (netFocusSecondsThisWeek.toFloat() / goalSec).coerceIn(0f, 1f) else 0f
         }
 }
 

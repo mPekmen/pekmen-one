@@ -50,7 +50,7 @@ class UserPreferencesDataStore(
         )
     }
 
-    suspend fun savePersonalSetup(setup: PersonalSetup) {
+    suspend fun savePersonalSetup(setup: PersonalSetup, applySelectedProfile: Boolean = false) {
         check(account != null) { "Setup requires an account-scoped store" }
         dataStore.edit { prefs ->
             prefs[SETUP_NAME] = setup.name
@@ -66,7 +66,7 @@ class UserPreferencesDataStore(
             else prefs[SETUP_LESSON_ID] = firstLessonId
             prefs[SETUP_STEP] = setup.step
             prefs[SETUP_COMPLETED] = setup.completed
-            if (setup.completed) prefs[KEY_SELECTED_PROFILE_ID] = setup.profileId
+            if (applySelectedProfile) prefs[KEY_SELECTED_PROFILE_ID] = setup.profileId
         }
     }
 

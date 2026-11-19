@@ -1,5 +1,6 @@
 # Gradle & Build Outputs
 .gradle/
+.kotlin/
 build/
 **/build/
 *.apk

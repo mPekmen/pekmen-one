@@ -47,4 +47,9 @@
     <string name="setup_legacy_title">Önceki yerel veriyi aktar</string>
     <string name="setup_legacy_description">Aktarılabilir tamamlanmış oturumları, profilleri, dersleri ve görevleri bu hesaba kopyalayın. Kaynak veriler cihazda kalır.</string>
     <string name="setup_legacy_confirm">Bu hesaba aktar</string>
+    <string name="setup_review">Kurulum bilgilerini gözden geçir</string>
+    <string name="setup_review_identity">%1$s (@%2$s)</string>
+    <string name="setup_review_goals">Günde %1$d dk · Haftada %2$d dk</string>
+    <string name="account_focus_preferences">Odak tercihleri</string>
+    <string name="account_save_focus_preferences">Odak tercihlerini kaydet</string>
 </resources>

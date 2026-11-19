@@ -90,6 +90,7 @@ internal fun PersonalSetupScreen(accounts: PekmenAccounts, active: AccountAccess
             }
             1 -> SetupFocusForm(draft, profiles) { draft = it }
             2 -> {
+                SetupReview(draft, profiles)
                 SetupTextField(
                     draft.firstLesson, { draft = draft.copy(firstLesson = it.take(80)) }, R.string.setup_lesson
                 )
@@ -138,6 +139,16 @@ internal fun PersonalSetupScreen(accounts: PekmenAccounts, active: AccountAccess
             action.run { accounts.signOut() }
         }
     }
+}
+
+@Composable
+private fun SetupReview(draft: PersonalSetup, profiles: List<FocusProfile>) {
+    Text(stringResource(R.string.setup_review), style = MaterialTheme.typography.titleMedium)
+    Text(stringResource(R.string.setup_review_identity, draft.name, draft.username))
+    Text(draft.purpose)
+    Text(stringResource(R.string.setup_review_goals, draft.dailyGoalMinutes, draft.weeklyGoalMinutes))
+    val profile = profiles.firstOrNull { it.id == draft.profileId }
+    if (profile != null) Text(profile.localizedName())
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -219,6 +230,7 @@ internal fun AccountProfileScreen(
     var username by remember { mutableStateOf(active.setup.username) }
     var confirmSignOut by remember { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
+    var editPreferences by remember { mutableStateOf(false) }
     val action = rememberAccountAction()
     BackHandler(!action.busy, onBack)
     AccountPage {
@@ -235,6 +247,12 @@ internal fun AccountProfileScreen(
             enabled = active.setup.copy(name = name, username = username).hasValidIdentity() && !action.busy
         ) { Text(stringResource(R.string.account_save)) }
         if (saved) Message(R.string.account_saved)
+        TextButton(onClick = { editPreferences = !editPreferences }, enabled = !action.busy) {
+            Text(stringResource(R.string.account_focus_preferences))
+        }
+        if (editPreferences) {
+            FocusPreferencesEditor(accounts, active) { editPreferences = false }
+        }
         OutlinedButton(onClick = { confirmSignOut = true }, enabled = !action.busy) {
             Text(stringResource(R.string.auth_sign_out))
         }
@@ -247,6 +265,29 @@ internal fun AccountProfileScreen(
             action.run { accounts.signOut() }
         }
     }
+}
+
+@Composable
+private fun FocusPreferencesEditor(
+    accounts: PekmenAccounts,
+    active: AccountAccess.Personal,
+    onSaved: () -> Unit
+) {
+    val profiles by active.account.container.profileRepository.profiles.collectAsStateWithLifecycle(emptyList())
+    val action = rememberAccountAction()
+    var draft by remember(active.setup) { mutableStateOf(active.setup) }
+    SetupFocusForm(draft, profiles) { draft = it }
+    val valid = draft.purpose.isNotBlank() && draft.categories.isNotEmpty() && draft.hasValidGoals()
+    Button(
+        enabled = valid && !action.busy && profiles.any { it.id == draft.profileId },
+        onClick = {
+            action.run {
+                accounts.updateFocusPreferences(active.account, draft)
+                onSaved()
+            }
+        }
+    ) { Text(stringResource(R.string.account_save_focus_preferences)) }
+    AccountActionFeedback(action)
 }
 
 @Composable
