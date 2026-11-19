@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_planner_reminders_name">Görev Hatırlatıcıları</string>
+    <string name="channel_planner_reminders_desc">Planlanan görevler için zamanlanmış yerel hatırlatmalar</string>
+
+    <string name="notif_task_reminder_public_title">Pekmen One</string>
+    <string name="notif_task_reminder_public_body">Zamanlanmış görev hatırlatması</string>
+    <string name="notif_task_reminder_body">Planlanan görev hatırlatması</string>
+
+    <string name="planner_untitled_calendar_event">Adsız etkinlik</string>
+</resources>
