@@ -12,4 +12,7 @@ interface UserPreferencesRepository {
     suspend fun setAutoStartBreaks(enabled: Boolean)
     suspend fun setAutoStartNextFocus(enabled: Boolean)
     suspend fun setDefaultCustomMinutes(minutes: Int)
+    suspend fun setActiveOwnerUserId(ownerUserId: String?)
+    suspend fun setZenIntegrationEnabled(enabled: Boolean)
+    suspend fun setRoutineKeywordEnabled(enabled: Boolean)
 }

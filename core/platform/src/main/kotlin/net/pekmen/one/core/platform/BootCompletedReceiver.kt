@@ -15,7 +15,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
         if (action !in ALLOWED_ACTIONS) return
         val provider = context.applicationContext as? FocusTriggerProvider ?: return
 
-        val pendingResult = goAsync()
+        val pendingResult: PendingResult? = goAsync()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         scope.launch {
             try {
@@ -26,7 +26,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     Intent.ACTION_SHUTDOWN -> handler.handleDeviceShutdown()
                 }
             } finally {
-                pendingResult.finish()
+                pendingResult?.finish()
             }
         }
     }

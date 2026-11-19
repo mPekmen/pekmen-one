@@ -27,7 +27,9 @@ import java.time.LocalDate
         Index(value = ["profile_id"]),
         Index(value = ["effective_day_date"]),
         Index(value = ["status"]),
-        Index(value = ["deleted_at_ms"])
+        Index(value = ["deleted_at_ms"]),
+        Index(value = ["subject_id"]),
+        Index(value = ["owner_user_id"])
     ]
 )
 data class FocusSessionEntity(
@@ -44,6 +46,10 @@ data class FocusSessionEntity(
     val topicId: String? = null,
     @ColumnInfo(name = "task_id")
     val taskId: String? = null,
+    @ColumnInfo(name = "book_start_page")
+    val bookStartPage: Int? = null,
+    @ColumnInfo(name = "book_end_page")
+    val bookEndPage: Int? = null,
     @ColumnInfo(name = "session_mode")
     val sessionMode: String,
     @ColumnInfo(name = "status")
@@ -88,6 +94,8 @@ data class FocusSessionEntity(
         bookId = bookId,
         topicId = topicId,
         taskId = taskId,
+        bookStartPage = bookStartPage,
+        bookEndPage = bookEndPage,
         sessionMode = FocusSessionMode.valueOf(sessionMode),
         status = FocusSessionStatus.valueOf(status),
         currentPhase = FocusPhase.valueOf(currentPhase),

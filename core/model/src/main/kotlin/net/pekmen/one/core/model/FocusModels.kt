@@ -49,7 +49,10 @@ data class UserPreferences(
     val selectedProfileId: String? = null,
     val autoStartBreaks: Boolean = false,
     val autoStartNextFocus: Boolean = false,
-    val defaultCustomMinutes: Int = 45
+    val defaultCustomMinutes: Int = 45,
+    val activeOwnerUserId: String? = null,
+    val zenIntegrationEnabled: Boolean = false,
+    val routineKeywordEnabled: Boolean = false
 )
 
 data class FocusProfile(
@@ -89,6 +92,8 @@ data class FocusSession(
     val bookId: String? = null,
     val topicId: String? = null,
     val taskId: String? = null,
+    val bookStartPage: Int? = null,
+    val bookEndPage: Int? = null,
     val sessionMode: FocusSessionMode,
     val status: FocusSessionStatus,
     val currentPhase: FocusPhase,

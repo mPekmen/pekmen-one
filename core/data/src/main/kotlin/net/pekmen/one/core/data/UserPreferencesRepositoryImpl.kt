@@ -34,4 +34,16 @@ class UserPreferencesRepositoryImpl(
     override suspend fun setDefaultCustomMinutes(minutes: Int) {
         dataStore.setDefaultCustomMinutes(minutes)
     }
+
+    override suspend fun setActiveOwnerUserId(ownerUserId: String?) {
+        dataStore.setActiveOwnerUserId(ownerUserId)
+    }
+
+    override suspend fun setZenIntegrationEnabled(enabled: Boolean) {
+        dataStore.setZenIntegrationEnabled(enabled)
+    }
+
+    override suspend fun setRoutineKeywordEnabled(enabled: Boolean) {
+        dataStore.setRoutineKeywordEnabled(enabled)
+    }
 }

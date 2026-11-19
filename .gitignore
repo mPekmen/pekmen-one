@@ -38,3 +38,4 @@ captures/
 .cxx/
 *.log
 hs_err_pid*.log
+.overnight/

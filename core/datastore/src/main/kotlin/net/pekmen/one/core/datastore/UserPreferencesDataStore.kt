@@ -48,7 +48,10 @@ class UserPreferencesDataStore(
                 autoStartBreaks = prefs[KEY_AUTO_START_BREAKS] ?: false,
                 autoStartNextFocus = prefs[KEY_AUTO_START_NEXT_FOCUS] ?: false,
                 defaultCustomMinutes = (prefs[KEY_DEFAULT_CUSTOM_MINUTES] ?: DEFAULT_CUSTOM_MINUTES)
-                    .coerceIn(MIN_CUSTOM_MINUTES, MAX_CUSTOM_MINUTES)
+                    .coerceIn(MIN_CUSTOM_MINUTES, MAX_CUSTOM_MINUTES),
+                activeOwnerUserId = prefs[KEY_ACTIVE_OWNER_USER_ID],
+                zenIntegrationEnabled = prefs[KEY_ZEN_INTEGRATION_ENABLED] ?: false,
+                routineKeywordEnabled = prefs[KEY_ROUTINE_KEYWORD_ENABLED] ?: false
             )
         }
 
@@ -87,6 +90,24 @@ class UserPreferencesDataStore(
         dataStore.edit { it[KEY_DEFAULT_CUSTOM_MINUTES] = clamped }
     }
 
+    suspend fun setActiveOwnerUserId(ownerUserId: String?) {
+        dataStore.edit { prefs ->
+            if (ownerUserId == null) {
+                prefs.remove(KEY_ACTIVE_OWNER_USER_ID)
+            } else {
+                prefs[KEY_ACTIVE_OWNER_USER_ID] = ownerUserId
+            }
+        }
+    }
+
+    suspend fun setZenIntegrationEnabled(enabled: Boolean) {
+        dataStore.edit { it[KEY_ZEN_INTEGRATION_ENABLED] = enabled }
+    }
+
+    suspend fun setRoutineKeywordEnabled(enabled: Boolean) {
+        dataStore.edit { it[KEY_ROUTINE_KEYWORD_ENABLED] = enabled }
+    }
+
     private companion object {
         const val DEFAULT_CUSTOM_MINUTES = 45
         const val MIN_CUSTOM_MINUTES = 1
@@ -98,5 +119,8 @@ class UserPreferencesDataStore(
         val KEY_AUTO_START_BREAKS = booleanPreferencesKey("auto_start_breaks")
         val KEY_AUTO_START_NEXT_FOCUS = booleanPreferencesKey("auto_start_next_focus")
         val KEY_DEFAULT_CUSTOM_MINUTES = intPreferencesKey("default_custom_minutes")
+        val KEY_ACTIVE_OWNER_USER_ID = stringPreferencesKey("active_owner_user_id")
+        val KEY_ZEN_INTEGRATION_ENABLED = booleanPreferencesKey("zen_integration_enabled")
+        val KEY_ROUTINE_KEYWORD_ENABLED = booleanPreferencesKey("routine_keyword_enabled")
     }
 }

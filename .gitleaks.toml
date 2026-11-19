@@ -17,4 +17,5 @@ paths = [
   '''^scripts/verify-security\.ps1$''',
   '''^\.gradle/''',
   '''(^|/)build/''',
+  '''^\.overnight/''',
 ]

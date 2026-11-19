@@ -11,7 +11,8 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "sync_outbox",
     indices = [
-        Index(value = ["entity_table", "entity_id"], unique = true)
+        Index(value = ["entity_table", "entity_id"], unique = true),
+        Index(value = ["owner_user_id"])
     ]
 )
 data class SyncOutboxEntity(
@@ -31,5 +32,9 @@ data class SyncOutboxEntity(
     @ColumnInfo(name = "attempt_count")
     val attemptCount: Int = 0,
     @ColumnInfo(name = "created_at_ms")
-    val createdAtMs: Long
+    val createdAtMs: Long,
+    @ColumnInfo(name = "owner_user_id")
+    val ownerUserId: String? = null,
+    @ColumnInfo(name = "last_error")
+    val lastError: String? = null
 )

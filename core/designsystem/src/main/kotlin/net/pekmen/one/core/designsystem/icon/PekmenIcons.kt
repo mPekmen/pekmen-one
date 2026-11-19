@@ -17,4 +17,7 @@ object PekmenIcons {
     val Warning = R.drawable.ic_warning
     val Check = R.drawable.ic_check
     val History = R.drawable.ic_history
+    val Book = R.drawable.ic_book
+    val Calendar = R.drawable.ic_calendar
+    val Group = R.drawable.ic_group
 }

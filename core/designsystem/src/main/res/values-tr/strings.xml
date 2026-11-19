@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nav_focus">Odak</string>
+    <string name="nav_learning">Öğrenme</string>
+    <string name="nav_planner">Planlayıcı</string>
     <string name="nav_insights">Özet</string>
     <string name="nav_settings">Ayarlar</string>
+    <string name="nav_circles">Çemberler</string>
 
     <string name="profile_study">Çalışma</string>
     <string name="profile_work">İş</string>
