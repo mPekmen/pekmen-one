@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 data object FocusRoute
 
 @Serializable
+data object LearningRoute
+
+@Serializable
 data object InsightsRoute
 
 @Serializable

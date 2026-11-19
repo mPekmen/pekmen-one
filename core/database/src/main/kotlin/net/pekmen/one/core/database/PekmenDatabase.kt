@@ -87,6 +87,7 @@ abstract class PekmenDatabase : RoomDatabase() {
                 PekmenDatabase::class.java,
                 name
             )
+                .setJournalMode(JournalMode.TRUNCATE)
                 .allowMainThreadQueries()
                 .addMigrations(PekmenMigrations.MIGRATION_1_2)
                 .build()

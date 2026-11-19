@@ -33,6 +33,7 @@ class PekmenNavigationSmokeTest {
                     sessionRepository = app.container.sessionRepository,
                     profileRepository = app.container.profileRepository,
                     historyRepository = app.container.historyRepository,
+                    learningRepository = app.container.learningRepository,
                     userPreferencesRepository = app.container.userPreferencesRepository,
                     diagnosticsRepository = app.container.diagnosticsRepository
                 )
@@ -40,6 +41,11 @@ class PekmenNavigationSmokeTest {
         }
 
         composeRule.onNodeWithText("Start focus").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Learning").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Organize what you study").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Organize what you study").assertIsDisplayed()
         composeRule.onNodeWithText("Summary").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000L) {
             composeRule.onAllNodesWithText("Last 7 days").fetchSemanticsNodes().isNotEmpty()
@@ -60,6 +66,7 @@ class PekmenNavigationSmokeTest {
                     sessionRepository = app.container.sessionRepository,
                     profileRepository = app.container.profileRepository,
                     historyRepository = app.container.historyRepository,
+                    learningRepository = app.container.learningRepository,
                     userPreferencesRepository = app.container.userPreferencesRepository,
                     diagnosticsRepository = app.container.diagnosticsRepository
                 )
@@ -67,6 +74,11 @@ class PekmenNavigationSmokeTest {
         }
 
         composeRule.onNodeWithText("Odağı başlat").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Öğrenme").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Çalıştığınız konuları düzenleyin").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Çalıştığınız konuları düzenleyin").assertIsDisplayed()
         composeRule.onNodeWithText("Özet").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000L) {
             composeRule.onAllNodesWithText("Son 7 gün").fetchSemanticsNodes().isNotEmpty()

@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -48,11 +49,14 @@ class LearningAndFocusFlowTest {
     private lateinit var prefsFile: File
     private val dbName = "learning_focus_flow_test.db"
     private var openDatabase: PekmenDatabase? = null
+    private var dataStoreScope: kotlinx.coroutines.CoroutineScope? = null
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        deleteDatabaseFiles(context.getDatabasePath(dbName))
+        val dbFile = context.getDatabasePath(dbName)
+        dbFile.parentFile?.mkdirs()
+        deleteDatabaseFiles(dbFile)
         val baseWall = LocalDateTime.of(2026, 11, 19, 14, 0, 0)
             .atZone(ZoneId.of("Europe/Istanbul"))
             .toInstant()
@@ -68,26 +72,30 @@ class LearningAndFocusFlowTest {
 
     @After
     fun tearDown() {
+        dataStoreScope?.cancel()
+        dataStoreScope = null
         openDatabase?.close()
         openDatabase = null
         deleteDatabaseFiles(context.getDatabasePath(dbName))
     }
 
     @Test
-    fun `almanca b2 journey updates book atomically enforces idempotency preserves legacy m1 and persists reopen`() =
+    fun `almanca b2 flow updates book and persists reopen`() =
         runTest {
             val today = LocalDate.of(2026, 11, 19)
-            val bundle = openStack(this)
+            val bundle = openStack()
             val (subjectId, bookId, topicId) = seedAlmancaSetup(bundle)
 
             runLinked25MinPomodoro(bundle, subjectId, bookId, topicId)
             verifyIdempotentRetryAndInsights(bundle, today, subjectId)
             verifyLegacySessionExclusion(bundle, today, subjectId)
 
+            dataStoreScope?.cancel()
+            dataStoreScope = null
             bundle.database.close()
             openDatabase = null
 
-            val reopened = openStack(this)
+            val reopened = openStack()
             val reopenedProgress = reopened.learning.observeWeeklySubjectProgress(today).first()
             assertEquals(1, reopenedProgress.size)
             assertEquals("Almanca B2", reopenedProgress.first().subject.title)
@@ -101,10 +109,10 @@ class LearningAndFocusFlowTest {
         }
 
     @Test
-    fun `owner isolation subject edit cascade safety book completion and soft delete tombstones work cleanly`() =
+    fun `owner isolation edit cascade and tombstones`() =
         runTest {
             val today = LocalDate.of(2026, 11, 19)
-            val bundle = openStack(this)
+            val bundle = openStack()
 
             bundle.dataStore.setActiveOwnerUserId("user-a")
             val subjectA = bundle.learning.saveSubject(
@@ -265,10 +273,14 @@ class LearningAndFocusFlowTest {
         assertEquals(1, subjectAfterLegacy.completedSessionCount)
     }
 
-    private fun openStack(scope: TestScope): StackBundle {
+    private fun openStack(): StackBundle {
         val db = PekmenDatabase.createFileBackedForTest(context, dbName)
         openDatabase = db
-        val rawStore = PreferenceDataStoreFactory.create(scope = scope.backgroundScope) { prefsFile }
+        val dsScope = kotlinx.coroutines.CoroutineScope(
+            kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.IO
+        )
+        dataStoreScope = dsScope
+        val rawStore = PreferenceDataStoreFactory.create(scope = dsScope) { prefsFile }
         val dataStore = UserPreferencesDataStore(rawStore)
         val profiles = FocusProfileRepositoryImpl(db.focusProfileDao(), fakeTime)
         val learning = LearningRepositoryImpl(db, dataStore, fakeTime)

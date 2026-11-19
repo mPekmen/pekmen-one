@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
                     sessionRepository = appContainer.sessionRepository,
                     profileRepository = appContainer.profileRepository,
                     historyRepository = appContainer.historyRepository,
+                    learningRepository = appContainer.learningRepository,
                     userPreferencesRepository = appContainer.userPreferencesRepository,
                     diagnosticsRepository = appContainer.diagnosticsRepository
                 )

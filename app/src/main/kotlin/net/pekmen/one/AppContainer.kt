@@ -8,6 +8,8 @@ import net.pekmen.one.core.data.FocusProfileRepository
 import net.pekmen.one.core.data.FocusProfileRepositoryImpl
 import net.pekmen.one.core.data.FocusSessionRepository
 import net.pekmen.one.core.data.FocusSessionRepositoryImpl
+import net.pekmen.one.core.data.LearningRepository
+import net.pekmen.one.core.data.LearningRepositoryImpl
 import net.pekmen.one.core.data.SystemDiagnosticsRepository
 import net.pekmen.one.core.data.SystemDiagnosticsRepositoryImpl
 import net.pekmen.one.core.data.UserPreferencesRepository
@@ -79,6 +81,14 @@ class AppContainer(context: Context) {
         FocusHistoryRepositoryImpl(
             database = database,
             profileRepository = profileRepository,
+            preferencesDataStore = userPreferencesDataStore,
+            timeProvider = timeProvider
+        )
+    }
+
+    val learningRepository: LearningRepository by lazy {
+        LearningRepositoryImpl(
+            database = database,
             preferencesDataStore = userPreferencesDataStore,
             timeProvider = timeProvider
         )

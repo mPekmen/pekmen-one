@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -97,8 +98,11 @@ fun SessionWrapUpSheet(
     val breakSummaryText = PekmenFormatters.formatHumanDuration(context, recordedBreakSec)
     val isUnderShortThreshold = recordedFocusSec < FocusTimeMath.MIN_VALID_SESSION_SECONDS
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
@@ -124,59 +128,15 @@ fun SessionWrapUpSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            linkedSubject?.let { subject ->
-                AssistChip(
-                    onClick = {},
-                    label = { Text(text = subject.title) }
-                )
-            }
-
-            if (linkedBook != null) {
-                OutlinedTextField(
-                    value = bookEndPageText,
-                    onValueChange = { input ->
-                        if (input.length <= 5 && input.all { it.isDigit() }) {
-                            bookEndPageText = input
-                        }
-                    },
-                    label = {
-                        Text(
-                            text = stringResource(
-                                R.string.focus_wrapup_book_end_page_label,
-                                PekmenFormatters.formatInteger(linkedBook.currentPage),
-                                PekmenFormatters.formatInteger(linkedBook.totalPages)
-                            )
-                        )
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            if (linkedTopic != null && linkedTopic.status != TopicStatus.MASTERED) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                        .clickable { markTopicMastered = !markTopicMastered },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = markTopicMastered,
-                        onCheckedChange = { markTopicMastered = it }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(
-                            R.string.focus_wrapup_mark_topic_mastered,
-                            linkedTopic.title
-                        ),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
+            LearningWrapUpInputs(
+                linkedSubject = linkedSubject,
+                linkedBook = linkedBook,
+                linkedTopic = linkedTopic,
+                bookEndPageText = bookEndPageText,
+                onBookEndPageChange = { bookEndPageText = it },
+                markTopicMastered = markTopicMastered,
+                onMarkTopicMasteredChange = { markTopicMastered = it }
+            )
 
             Text(
                 text = stringResource(R.string.focus_wrapup_adjust_label),
@@ -324,6 +284,71 @@ fun SessionWrapUpSheet(
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
+        }
+    }
+}
+
+@Composable
+private fun LearningWrapUpInputs(
+    linkedSubject: LearningSubject?,
+    linkedBook: LearningBook?,
+    linkedTopic: LearningTopic?,
+    bookEndPageText: String,
+    onBookEndPageChange: (String) -> Unit,
+    markTopicMastered: Boolean,
+    onMarkTopicMasteredChange: (Boolean) -> Unit
+) {
+    linkedSubject?.let { subject ->
+        AssistChip(
+            onClick = {},
+            label = { Text(text = subject.title) }
+        )
+    }
+
+    if (linkedBook != null) {
+        OutlinedTextField(
+            value = bookEndPageText,
+            onValueChange = { input ->
+                if (input.length <= 5 && input.all { it.isDigit() }) {
+                    onBookEndPageChange(input)
+                }
+            },
+            label = {
+                Text(
+                    text = stringResource(
+                        R.string.focus_wrapup_book_end_page_label,
+                        PekmenFormatters.formatInteger(linkedBook.currentPage),
+                        PekmenFormatters.formatInteger(linkedBook.totalPages)
+                    )
+                )
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    if (linkedTopic != null && linkedTopic.status != TopicStatus.MASTERED) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clickable { onMarkTopicMasteredChange(!markTopicMastered) },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = markTopicMastered,
+                onCheckedChange = onMarkTopicMasteredChange
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(
+                    R.string.focus_wrapup_mark_topic_mastered,
+                    linkedTopic.title
+                ),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }

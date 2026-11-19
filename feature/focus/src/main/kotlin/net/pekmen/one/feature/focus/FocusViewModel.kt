@@ -234,10 +234,8 @@ class FocusViewModel(
         if (book != null) {
             selectedSubjectId.value = book.subjectId
         }
-        val currentTopic = uiState.value.topics.firstOrNull { it.id == selectedTopicId.value }
-        if (currentTopic != null && bookId != null &&
-            currentTopic.bookId != null && currentTopic.bookId != bookId
-        ) {
+        val topicBookId = uiState.value.topics.firstOrNull { it.id == selectedTopicId.value }?.bookId
+        if (bookId != null && topicBookId != null && topicBookId != bookId) {
             selectedTopicId.value = null
         }
     }

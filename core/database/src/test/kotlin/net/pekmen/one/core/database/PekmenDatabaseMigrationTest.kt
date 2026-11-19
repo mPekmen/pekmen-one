@@ -49,7 +49,7 @@ class PekmenDatabaseMigrationTest {
     }
 
     @Test
-    fun `migrates genuine v1 sqlite file to v2 with zero data loss and intact uuidv7 ids`() = runTest {
+    fun `migrates v1 sqlite to v2 with zero data loss`() = runTest {
         val customProfileId = UuidV7.generate(1_760_000_000_000L)
         val completedSessionId = UuidV7.generate(1_760_000_100_000L)
         val completedFocusSegId = UuidV7.generate(1_760_000_100_010L)
@@ -60,14 +60,16 @@ class PekmenDatabaseMigrationTest {
         val outboxMutationId = UuidV7.generate(1_760_000_400_000L)
 
         createGenuineV1Database(
-            customProfileId = customProfileId,
-            completedSessionId = completedSessionId,
-            completedFocusSegId = completedFocusSegId,
-            completedBreakSegId = completedBreakSegId,
-            runningSessionId = runningSessionId,
-            runningClosedSegId = runningClosedSegId,
-            runningOpenSegId = runningOpenSegId,
-            outboxMutationId = outboxMutationId
+            V1SeedIds(
+                customProfileId = customProfileId,
+                completedSessionId = completedSessionId,
+                completedFocusSegId = completedFocusSegId,
+                completedBreakSegId = completedBreakSegId,
+                runningSessionId = runningSessionId,
+                runningClosedSegId = runningClosedSegId,
+                runningOpenSegId = runningOpenSegId,
+                outboxMutationId = outboxMutationId
+            )
         )
 
         val db = PekmenDatabase.createFileBackedForTest(context, dbName)
@@ -128,35 +130,26 @@ class PekmenDatabaseMigrationTest {
         verifyV2TablesWritable(db)
     }
 
-    private fun createGenuineV1Database(
-        customProfileId: String,
-        completedSessionId: String,
-        completedFocusSegId: String,
-        completedBreakSegId: String,
-        runningSessionId: String,
-        runningClosedSegId: String,
-        runningOpenSegId: String,
-        outboxMutationId: String
-    ) {
+    private fun createGenuineV1Database(ids: V1SeedIds) {
         val dbFile = context.getDatabasePath(dbName)
         dbFile.parentFile?.mkdirs()
         val rawDb = SQLiteDatabase.openOrCreateDatabase(dbFile, null)
         try {
             rawDb.execSQL("PRAGMA foreign_keys = ON")
             executeV1Ddl(rawDb)
-            insertV1Profiles(rawDb, customProfileId)
+            insertV1Profiles(rawDb, ids.customProfileId)
             insertV1CompletedSession(
                 rawDb = rawDb,
-                sessionId = completedSessionId,
-                focusSegId = completedFocusSegId,
-                breakSegId = completedBreakSegId
+                sessionId = ids.completedSessionId,
+                focusSegId = ids.completedFocusSegId,
+                breakSegId = ids.completedBreakSegId
             )
             insertV1RunningSession(
                 rawDb = rawDb,
-                customProfileId = customProfileId,
-                sessionId = runningSessionId,
-                closedSegId = runningClosedSegId,
-                openSegId = runningOpenSegId
+                customProfileId = ids.customProfileId,
+                sessionId = ids.runningSessionId,
+                closedSegId = ids.runningClosedSegId,
+                openSegId = ids.runningOpenSegId
             )
             rawDb.execSQL(
                 """
@@ -166,11 +159,11 @@ class PekmenDatabaseMigrationTest {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """.trimIndent(),
                 arrayOf(
-                    outboxMutationId,
+                    ids.outboxMutationId,
                     "focus_sessions",
-                    completedSessionId,
+                    ids.completedSessionId,
                     "UPSERT",
-                    """{"id":"$completedSessionId"}""",
+                    """{"id":"${ids.completedSessionId}"}""",
                     1L,
                     0,
                     1_760_000_400_000L
@@ -383,29 +376,33 @@ class PekmenDatabaseMigrationTest {
 
         insertV1Segment(
             rawDb = rawDb,
-            segmentId = focusSegId,
-            sessionId = sessionId,
-            index = 0,
-            phase = FocusPhase.FOCUS.name,
-            startedWall = 1_760_000_100_000L,
-            startedElapsed = 10_000L,
-            checkpointed = 1_500_000L,
-            planned = 1_500_000L,
-            endedWall = 1_760_001_600_000L,
-            durationMs = 1_500_000L
+            row = V1SegmentRow(
+                segmentId = focusSegId,
+                sessionId = sessionId,
+                index = 0,
+                phase = FocusPhase.FOCUS.name,
+                startedWall = 1_760_000_100_000L,
+                startedElapsed = 10_000L,
+                checkpointed = 1_500_000L,
+                planned = 1_500_000L,
+                endedWall = 1_760_001_600_000L,
+                durationMs = 1_500_000L
+            )
         )
         insertV1Segment(
             rawDb = rawDb,
-            segmentId = breakSegId,
-            sessionId = sessionId,
-            index = 1,
-            phase = FocusPhase.SHORT_BREAK.name,
-            startedWall = 1_760_001_600_000L,
-            startedElapsed = 1_510_000L,
-            checkpointed = 300_000L,
-            planned = 300_000L,
-            endedWall = 1_760_001_900_000L,
-            durationMs = 300_000L
+            row = V1SegmentRow(
+                segmentId = breakSegId,
+                sessionId = sessionId,
+                index = 1,
+                phase = FocusPhase.SHORT_BREAK.name,
+                startedWall = 1_760_001_600_000L,
+                startedElapsed = 1_510_000L,
+                checkpointed = 300_000L,
+                planned = 300_000L,
+                endedWall = 1_760_001_900_000L,
+                durationMs = 300_000L
+            )
         )
     }
 
@@ -464,45 +461,37 @@ class PekmenDatabaseMigrationTest {
 
         insertV1Segment(
             rawDb = rawDb,
-            segmentId = closedSegId,
-            sessionId = sessionId,
-            index = 0,
-            phase = FocusPhase.FOCUS.name,
-            startedWall = 1_760_000_300_000L,
-            startedElapsed = 20_000L,
-            checkpointed = 600_000L,
-            planned = 2_700_000L,
-            endedWall = 1_760_000_900_000L,
-            durationMs = 600_000L
+            row = V1SegmentRow(
+                segmentId = closedSegId,
+                sessionId = sessionId,
+                index = 0,
+                phase = FocusPhase.FOCUS.name,
+                startedWall = 1_760_000_300_000L,
+                startedElapsed = 20_000L,
+                checkpointed = 600_000L,
+                planned = 2_700_000L,
+                endedWall = 1_760_000_900_000L,
+                durationMs = 600_000L
+            )
         )
         insertV1Segment(
             rawDb = rawDb,
-            segmentId = openSegId,
-            sessionId = sessionId,
-            index = 1,
-            phase = FocusPhase.FOCUS.name,
-            startedWall = 1_760_000_350_010L,
-            startedElapsed = 70_000L,
-            checkpointed = 120_000L,
-            planned = 2_100_000L,
-            endedWall = null,
-            durationMs = null
+            row = V1SegmentRow(
+                segmentId = openSegId,
+                sessionId = sessionId,
+                index = 1,
+                phase = FocusPhase.FOCUS.name,
+                startedWall = 1_760_000_350_010L,
+                startedElapsed = 70_000L,
+                checkpointed = 120_000L,
+                planned = 2_100_000L,
+                endedWall = null,
+                durationMs = null
+            )
         )
     }
 
-    private fun insertV1Segment(
-        rawDb: SQLiteDatabase,
-        segmentId: String,
-        sessionId: String,
-        index: Int,
-        phase: String,
-        startedWall: Long,
-        startedElapsed: Long,
-        checkpointed: Long,
-        planned: Long?,
-        endedWall: Long?,
-        durationMs: Long?
-    ) {
+    private fun insertV1Segment(rawDb: SQLiteDatabase, row: V1SegmentRow) {
         rawDb.execSQL(
             """
             INSERT INTO `focus_session_segments` (
@@ -512,17 +501,17 @@ class PekmenDatabaseMigrationTest {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             arrayOf(
-                segmentId,
-                sessionId,
-                index,
-                phase,
-                startedWall,
-                startedElapsed,
+                row.segmentId,
+                row.sessionId,
+                row.index,
+                row.phase,
+                row.startedWall,
+                row.startedElapsed,
                 1,
-                checkpointed,
-                planned,
-                endedWall,
-                durationMs
+                row.checkpointed,
+                row.planned,
+                row.endedWall,
+                row.durationMs
             )
         )
     }
@@ -579,4 +568,28 @@ class PekmenDatabaseMigrationTest {
         File("${dbFile.path}-shm").delete()
         File("${dbFile.path}-journal").delete()
     }
+
+    private data class V1SeedIds(
+        val customProfileId: String,
+        val completedSessionId: String,
+        val completedFocusSegId: String,
+        val completedBreakSegId: String,
+        val runningSessionId: String,
+        val runningClosedSegId: String,
+        val runningOpenSegId: String,
+        val outboxMutationId: String
+    )
+
+    private data class V1SegmentRow(
+        val segmentId: String,
+        val sessionId: String,
+        val index: Int,
+        val phase: String,
+        val startedWall: Long,
+        val startedElapsed: Long,
+        val checkpointed: Long,
+        val planned: Long? = null,
+        val endedWall: Long? = null,
+        val durationMs: Long? = null
+    )
 }

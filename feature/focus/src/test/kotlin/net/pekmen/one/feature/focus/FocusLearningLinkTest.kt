@@ -1,10 +1,12 @@
 package net.pekmen.one.feature.focus
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -28,10 +30,8 @@ import net.pekmen.one.core.model.LearningBook
 import net.pekmen.one.core.model.LearningSubject
 import net.pekmen.one.core.model.LearningTopic
 import net.pekmen.one.core.model.SessionLearningLink
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,16 +47,6 @@ class FocusLearningLinkTest {
     val composeRule = createComposeRule()
 
     private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
 
     @Test
     @Config(qualifiers = "en")
@@ -112,7 +102,7 @@ class FocusLearningLinkTest {
     }
 
     @Test
-    @Config(qualifiers = "en")
+    @Config(qualifiers = "en-w411dp-h891dp")
     fun `wrap up sheet updates book end page and marks topic mastered`() {
         val study = BuiltInProfiles.defaults().first()
         val subject = LearningSubject("sub-1", title = "Almanca B2", colorHex = 0xFF8B7CF6, weeklyGoalMinutes = 150)
@@ -162,60 +152,78 @@ class FocusLearningLinkTest {
             }
         }
 
+        composeRule.waitForIdle()
         composeRule.onNodeWithText("40").performScrollTo().performTextReplacement("52")
-        composeRule.onNodeWithText("Mark topic Schreiben as mastered").performScrollTo().performClick()
-        composeRule.onNodeWithText("Save session").performScrollTo().performClick()
+        composeRule.onNodeWithText("Mark topic Schreiben as mastered")
+            .performScrollTo()
+            .performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.onNodeWithText("Save session")
+            .performScrollTo()
+            .performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
 
         assertEquals(52, savedPage)
         assertEquals(true, savedMastered)
     }
 
     @Test
-    fun `view model prevents duplicate saveWrapUp submission and passes link on start`() = runTest(testDispatcher) {
-        val gate = CompletableDeferred<Unit>()
-        val fakeSessionRepo = FakeFocusSessionRepository(gate)
-        val subject = LearningSubject("sub-1", title = "Almanca B2", colorHex = 0xFF8B7CF6, weeklyGoalMinutes = 150)
-        val book = LearningBook(
-            id = "book-1",
-            subjectId = "sub-1",
-            title = "Erkundungen B2",
-            totalPages = 240,
-            currentPage = 40
-        )
-        val topic = LearningTopic("topic-1", subjectId = "sub-1", bookId = "book-1", title = "Schreiben")
-        val vm = FocusViewModel(
-            sessionRepository = fakeSessionRepo,
-            profileRepository = FakeProfileRepo(),
-            historyRepository = FakeHistoryRepo(),
-            preferencesRepository = FakePrefsRepo(),
-            diagnosticsRepository = FakeDiagnosticsRepo(),
-            learningRepository = FakeLearningRepo(listOf(subject), listOf(book), listOf(topic))
-        )
+    fun `view model prevents duplicate saveWrapUp submission and passes link on start`() {
+        Dispatchers.setMain(testDispatcher)
+        try {
+            runTest(testDispatcher) {
+                val gate = CompletableDeferred<Unit>()
+                val fakeSessionRepo = FakeFocusSessionRepository(gate)
+                val subject = LearningSubject(
+                    "sub-1",
+                    title = "Almanca B2",
+                    colorHex = 0xFF8B7CF6,
+                    weeklyGoalMinutes = 150
+                )
+                val book = LearningBook(
+                    id = "book-1",
+                    subjectId = "sub-1",
+                    title = "Erkundungen B2",
+                    totalPages = 240,
+                    currentPage = 40
+                )
+                val topic = LearningTopic("topic-1", subjectId = "sub-1", bookId = "book-1", title = "Schreiben")
+                val vm = FocusViewModel(
+                    sessionRepository = fakeSessionRepo,
+                    profileRepository = FakeProfileRepo(),
+                    historyRepository = FakeHistoryRepo(),
+                    preferencesRepository = FakePrefsRepo(),
+                    diagnosticsRepository = FakeDiagnosticsRepo(),
+                    learningRepository = FakeLearningRepo(listOf(subject), listOf(book), listOf(topic))
+                )
 
-        val ready = vm.uiState.first { it.profiles.isNotEmpty() && it.subjects.isNotEmpty() }
-        assertTrue(ready.subjects.isNotEmpty())
-        vm.selectSubject("sub-1")
-        vm.selectBook("book-1")
-        vm.selectTopic("topic-1")
-        testDispatcher.scheduler.advanceUntilIdle()
+                val ready = vm.uiState.first { it.profiles.isNotEmpty() && it.subjects.isNotEmpty() }
+                assertTrue(ready.subjects.isNotEmpty())
+                vm.selectSubject("sub-1")
+                vm.selectBook("book-1")
+                vm.selectTopic("topic-1")
+                testDispatcher.scheduler.advanceUntilIdle()
 
-        vm.startFocus()
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals("sub-1", fakeSessionRepo.lastStartLink?.subjectId)
-        assertEquals("book-1", fakeSessionRepo.lastStartLink?.bookId)
-        assertEquals("topic-1", fakeSessionRepo.lastStartLink?.topicId)
-        assertEquals(40, fakeSessionRepo.lastStartLink?.bookStartPage)
+                vm.startFocus()
+                testDispatcher.scheduler.advanceUntilIdle()
+                assertEquals("sub-1", fakeSessionRepo.lastStartLink?.subjectId)
+                assertEquals("book-1", fakeSessionRepo.lastStartLink?.bookId)
+                assertEquals("topic-1", fakeSessionRepo.lastStartLink?.topicId)
+                assertEquals(40, fakeSessionRepo.lastStartLink?.bookStartPage)
 
-        // Rapid double click on saveWrapUp while completion is in flight
-        vm.saveWrapUp(null, 5, "Great", bookEndPage = 52, markTopicMastered = true)
-        vm.saveWrapUp(null, 4, "Duplicate", bookEndPage = 99, markTopicMastered = false)
-        testDispatcher.scheduler.runCurrent()
-        gate.complete(Unit)
-        testDispatcher.scheduler.advanceUntilIdle()
+                // Rapid double click on saveWrapUp while completion is in flight
+                vm.saveWrapUp(null, 5, "Great", bookEndPage = 52, markTopicMastered = true)
+                vm.saveWrapUp(null, 4, "Duplicate", bookEndPage = 99, markTopicMastered = false)
+                testDispatcher.scheduler.runCurrent()
+                gate.complete(Unit)
+                testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(1, fakeSessionRepo.completeCalls)
-        assertEquals(52, fakeSessionRepo.lastBookEndPage)
-        assertEquals(true, fakeSessionRepo.lastMarkMastered)
+                assertEquals(1, fakeSessionRepo.completeCalls)
+                assertEquals(52, fakeSessionRepo.lastBookEndPage)
+                assertEquals(true, fakeSessionRepo.lastMarkMastered)
+            }
+        } finally {
+            Dispatchers.resetMain()
+        }
     }
 
     private class FakeFocusSessionRepository(
