@@ -7,7 +7,8 @@ import java.time.ZoneId
 
 data class SystemDiagnostics(
     val hasNotificationPermission: Boolean,
-    val canScheduleExactAlarms: Boolean
+    val canScheduleExactAlarms: Boolean,
+    val hasNotificationPolicyAccess: Boolean = false
 )
 
 interface SystemDiagnosticsRepository {
@@ -27,7 +28,8 @@ class SystemDiagnosticsRepositoryImpl(
     override fun refreshDiagnostics(): SystemDiagnostics {
         return SystemDiagnostics(
             hasNotificationPermission = permissionChecker.hasNotificationPermission(),
-            canScheduleExactAlarms = alarmGateway.canScheduleExactAlarms()
+            canScheduleExactAlarms = alarmGateway.canScheduleExactAlarms(),
+            hasNotificationPolicyAccess = permissionChecker.hasNotificationPolicyAccess()
         )
     }
 

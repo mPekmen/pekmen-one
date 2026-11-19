@@ -21,17 +21,23 @@ import net.pekmen.one.core.data.FocusSessionRepository
 import net.pekmen.one.core.data.LearningRepository
 import net.pekmen.one.core.data.SystemDiagnosticsRepository
 import net.pekmen.one.core.data.UserPreferencesRepository
+import net.pekmen.one.core.data.planner.CalendarInsertGateway
+import net.pekmen.one.core.data.planner.PlatformCalendarInsertGateway
+import net.pekmen.one.core.data.planner.PlannerRepository
 import net.pekmen.one.core.designsystem.R
 import net.pekmen.one.core.designsystem.component.PekmenAdaptiveScaffold
 import net.pekmen.one.core.designsystem.component.PekmenNavDestination
 import net.pekmen.one.core.designsystem.icon.PekmenIcons
 import net.pekmen.one.core.model.SessionLearningLink
+import net.pekmen.one.core.portability.BackupPortabilityService
 import net.pekmen.one.feature.focus.FocusRoute
 import net.pekmen.one.feature.focus.FocusViewModel
 import net.pekmen.one.feature.insights.InsightsRoute
 import net.pekmen.one.feature.insights.InsightsViewModel
 import net.pekmen.one.feature.learning.LearningRoute as LearningScreenRoute
 import net.pekmen.one.feature.learning.LearningViewModel
+import net.pekmen.one.feature.planner.PlannerScreenRoute
+import net.pekmen.one.feature.planner.PlannerViewModel
 import net.pekmen.one.feature.settings.SettingsRoute
 import net.pekmen.one.feature.settings.SettingsViewModel
 
@@ -44,7 +50,10 @@ fun PekmenAppShell(
     learningRepository: LearningRepository,
     userPreferencesRepository: UserPreferencesRepository,
     diagnosticsRepository: SystemDiagnosticsRepository,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    plannerRepository: PlannerRepository? = null,
+    calendarInsertGateway: CalendarInsertGateway = PlatformCalendarInsertGateway(),
+    backupPortabilityService: BackupPortabilityService? = null
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -61,31 +70,49 @@ fun PekmenAppShell(
         }
     }
 
-    val destinations = listOf(
-        PekmenNavDestination(
-            id = NAV_ID_FOCUS,
-            labelRes = R.string.nav_focus,
-            iconRes = PekmenIcons.Focus
-        ),
-        PekmenNavDestination(
-            id = NAV_ID_LEARNING,
-            labelRes = R.string.nav_learning,
-            iconRes = PekmenIcons.Book
-        ),
-        PekmenNavDestination(
-            id = NAV_ID_INSIGHTS,
-            labelRes = R.string.nav_insights,
-            iconRes = PekmenIcons.Insights
-        ),
-        PekmenNavDestination(
-            id = NAV_ID_SETTINGS,
-            labelRes = R.string.nav_settings,
-            iconRes = PekmenIcons.Settings
+    val destinations = buildList {
+        add(
+            PekmenNavDestination(
+                id = NAV_ID_FOCUS,
+                labelRes = R.string.nav_focus,
+                iconRes = PekmenIcons.Focus
+            )
         )
-    )
+        add(
+            PekmenNavDestination(
+                id = NAV_ID_LEARNING,
+                labelRes = R.string.nav_learning,
+                iconRes = PekmenIcons.Book
+            )
+        )
+        if (plannerRepository != null) {
+            add(
+                PekmenNavDestination(
+                    id = NAV_ID_PLANNER,
+                    labelRes = R.string.nav_planner,
+                    iconRes = PekmenIcons.Calendar
+                )
+            )
+        }
+        add(
+            PekmenNavDestination(
+                id = NAV_ID_INSIGHTS,
+                labelRes = R.string.nav_insights,
+                iconRes = PekmenIcons.Insights
+            )
+        )
+        add(
+            PekmenNavDestination(
+                id = NAV_ID_SETTINGS,
+                labelRes = R.string.nav_settings,
+                iconRes = PekmenIcons.Settings
+            )
+        )
+    }
 
     val selectedId = when {
         currentDestination?.hasRoute<LearningRoute>() == true -> NAV_ID_LEARNING
+        currentDestination?.hasRoute<PlannerRoute>() == true -> NAV_ID_PLANNER
         currentDestination?.hasRoute<InsightsRoute>() == true -> NAV_ID_INSIGHTS
         currentDestination?.hasRoute<SettingsRoute>() == true -> NAV_ID_SETTINGS
         else -> NAV_ID_FOCUS
@@ -98,6 +125,7 @@ fun PekmenAppShell(
         onSelectDestination = { targetId ->
             val route: Any = when (targetId) {
                 NAV_ID_LEARNING -> LearningRoute
+                NAV_ID_PLANNER -> PlannerRoute
                 NAV_ID_INSIGHTS -> InsightsRoute
                 NAV_ID_SETTINGS -> SettingsRoute
                 else -> FocusRoute
@@ -123,7 +151,7 @@ fun PekmenAppShell(
                 }
                 LaunchedEffect(pendingFocusLink) {
                     val link = pendingFocusLink ?: return@LaunchedEffect
-                    vm.prepareLearningLink(link.subjectId, link.bookId, link.topicId)
+                    vm.prepareLearningLink(link.subjectId, link.bookId, link.topicId, link.taskId)
                     pendingFocusLink = null
                 }
                 FocusRoute(viewModel = vm)
@@ -149,6 +177,30 @@ fun PekmenAppShell(
                     }
                 )
             }
+            if (plannerRepository != null) {
+                composable<PlannerRoute> {
+                    val vm: PlannerViewModel = viewModel {
+                        PlannerViewModel(
+                            plannerRepository = plannerRepository,
+                            diagnosticsRepository = diagnosticsRepository,
+                            calendarInsertGateway = calendarInsertGateway
+                        )
+                    }
+                    PlannerScreenRoute(
+                        viewModel = vm,
+                        onFocusOnTask = { taskId, subjectId ->
+                            pendingFocusLink = SessionLearningLink(
+                                subjectId = subjectId,
+                                bookId = null,
+                                topicId = null,
+                                taskId = taskId,
+                                bookStartPage = null
+                            )
+                            navigateToTopLevel(FocusRoute)
+                        }
+                    )
+                }
+            }
             composable<InsightsRoute> {
                 val vm: InsightsViewModel = viewModel {
                     InsightsViewModel(
@@ -166,7 +218,8 @@ fun PekmenAppShell(
                     SettingsViewModel(
                         preferencesRepository = userPreferencesRepository,
                         profileRepository = profileRepository,
-                        diagnosticsRepository = diagnosticsRepository
+                        diagnosticsRepository = diagnosticsRepository,
+                        backupPortabilityService = backupPortabilityService
                     )
                 }
                 SettingsRoute(viewModel = vm)
@@ -177,5 +230,6 @@ fun PekmenAppShell(
 
 private const val NAV_ID_FOCUS = "focus"
 private const val NAV_ID_LEARNING = "learning"
+private const val NAV_ID_PLANNER = "planner"
 private const val NAV_ID_INSIGHTS = "insights"
 private const val NAV_ID_SETTINGS = "settings"

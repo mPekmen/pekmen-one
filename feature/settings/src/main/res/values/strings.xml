@@ -35,8 +35,13 @@
     <string name="settings_status_fallback">Inexact fallback active</string>
     <string name="settings_action_open_system">Manage</string>
 
+    <string name="settings_system_bridges_section">Focus Modes &amp; Samsung Routines</string>
+    <string name="settings_zen_integration_label">Activate Pekmen Focus DND rule automatically</string>
+    <string name="settings_dnd_policy_access_title">Do Not Disturb access</string>
+    <string name="settings_routine_keyword_label">Include [PekmenFocus] keyword tag in notifications</string>
+
     <string name="settings_privacy_section">Privacy &amp; Open Source</string>
-    <string name="settings_privacy_offline_body">Offline-only in M1. Zero INTERNET permission is declared; all focus sessions stay on your device under AGPL-3.0.</string>
+    <string name="settings_privacy_offline_body">Offline-first by default. Zero INTERNET permission is declared in standard builds; your focus, learning, planner data, and local backups stay on your device under AGPL-3.0.</string>
 
     <string name="settings_cd_decrease_rollover">Decrease day boundary hour</string>
     <string name="settings_cd_increase_rollover">Increase day boundary hour</string>

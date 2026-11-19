@@ -70,6 +70,7 @@ fun SettingsRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val resolver = LocalContext.current.contentResolver
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -87,10 +88,15 @@ fun SettingsRoute(
         onChangeRolloverHour = viewModel::setDayRolloverHour,
         onToggleAutoBreaks = viewModel::setAutoStartBreaks,
         onToggleAutoNextFocus = viewModel::setAutoStartNextFocus,
+        onToggleZenIntegration = viewModel::setZenIntegrationEnabled,
+        onToggleRoutineKeyword = viewModel::setRoutineKeywordEnabled,
         onEditProfile = viewModel::openEditProfile,
         onCreateProfile = viewModel::openCreateProfile,
         onDismissProfileEditor = viewModel::dismissProfileEditor,
         onSaveProfile = viewModel::saveProfile,
+        onExportBackupJson = { viewModel.exportBackupJson(it, resolver) },
+        onRestoreBackupJson = { viewModel.restoreBackupJson(it, resolver) },
+        onExportCsv = { target, uri -> viewModel.exportCsv(target, uri, resolver) },
         modifier = modifier
     )
 }
@@ -106,7 +112,12 @@ fun SettingsScreen(
     onCreateProfile: () -> Unit,
     onDismissProfileEditor: () -> Unit,
     onSaveProfile: (SaveProfileRequest) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onToggleZenIntegration: (Boolean) -> Unit = {},
+    onToggleRoutineKeyword: (Boolean) -> Unit = {},
+    onExportBackupJson: (Uri) -> Unit = {},
+    onRestoreBackupJson: (Uri) -> Unit = {},
+    onExportCsv: (PortabilityCsvTarget, Uri) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
 
@@ -154,10 +165,30 @@ fun SettingsScreen(
             }
 
             item {
+                ZenAndSamsungBridgeCard(
+                    zenIntegrationEnabled = state.preferences.zenIntegrationEnabled,
+                    routineKeywordEnabled = state.preferences.routineKeywordEnabled,
+                    hasPolicyAccess = state.diagnostics.hasNotificationPolicyAccess,
+                    onToggleZenIntegration = onToggleZenIntegration,
+                    onToggleRoutineKeyword = onToggleRoutineKeyword,
+                    onOpenDndPolicySettings = { openDndPolicySettings(context) }
+                )
+            }
+
+            item {
                 SystemDiagnosticsCard(
                     diagnostics = state.diagnostics,
                     onOpenNotificationsSettings = { openNotificationSettings(context) },
                     onOpenExactAlarmSettings = { openExactAlarmSettings(context) }
+                )
+            }
+
+            item {
+                PortabilitySection(
+                    state = state.portability,
+                    onExportBackupJson = onExportBackupJson,
+                    onRestoreBackupJson = onRestoreBackupJson,
+                    onExportCsv = onExportCsv
                 )
             }
 
@@ -479,7 +510,7 @@ private fun PrivacyCard() {
 }
 
 @Composable
-private fun SwitchSettingRow(
+internal fun SwitchSettingRow(
     label: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
@@ -502,7 +533,7 @@ private fun SwitchSettingRow(
 }
 
 @Composable
-private fun DiagnosticRow(
+internal fun DiagnosticRow(
     title: String,
     status: String,
     actionLabel: String,

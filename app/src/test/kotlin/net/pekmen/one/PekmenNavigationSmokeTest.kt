@@ -34,8 +34,11 @@ class PekmenNavigationSmokeTest {
                     profileRepository = app.container.profileRepository,
                     historyRepository = app.container.historyRepository,
                     learningRepository = app.container.learningRepository,
+                    plannerRepository = app.container.plannerRepository,
+                    calendarInsertGateway = app.container.calendarInsertGateway,
                     userPreferencesRepository = app.container.userPreferencesRepository,
-                    diagnosticsRepository = app.container.diagnosticsRepository
+                    diagnosticsRepository = app.container.diagnosticsRepository,
+                    backupPortabilityService = app.container.backupPortabilityService
                 )
             }
         }
@@ -46,6 +49,11 @@ class PekmenNavigationSmokeTest {
             composeRule.onAllNodesWithText("Organize what you study").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Organize what you study").assertIsDisplayed()
+        composeRule.onNodeWithText("Planner").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Add task").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Add task").assertIsDisplayed()
         composeRule.onNodeWithText("Summary").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000L) {
             composeRule.onAllNodesWithText("Last 7 days").fetchSemanticsNodes().isNotEmpty()
@@ -67,8 +75,11 @@ class PekmenNavigationSmokeTest {
                     profileRepository = app.container.profileRepository,
                     historyRepository = app.container.historyRepository,
                     learningRepository = app.container.learningRepository,
+                    plannerRepository = app.container.plannerRepository,
+                    calendarInsertGateway = app.container.calendarInsertGateway,
                     userPreferencesRepository = app.container.userPreferencesRepository,
-                    diagnosticsRepository = app.container.diagnosticsRepository
+                    diagnosticsRepository = app.container.diagnosticsRepository,
+                    backupPortabilityService = app.container.backupPortabilityService
                 )
             }
         }
@@ -79,6 +90,11 @@ class PekmenNavigationSmokeTest {
             composeRule.onAllNodesWithText("Çalıştığınız konuları düzenleyin").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Çalıştığınız konuları düzenleyin").assertIsDisplayed()
+        composeRule.onNodeWithText("Planlayıcı").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithText("Görev ekle").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("Görev ekle").assertIsDisplayed()
         composeRule.onNodeWithText("Özet").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000L) {
             composeRule.onAllNodesWithText("Son 7 gün").fetchSemanticsNodes().isNotEmpty()

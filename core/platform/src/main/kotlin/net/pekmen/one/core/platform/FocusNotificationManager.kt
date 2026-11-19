@@ -51,6 +51,24 @@ class FocusNotificationManager(
         isCountdown: Boolean,
         chronometerBaseWallMs: Long
     ) {
+        showRunningNotification(
+            sessionId = sessionId,
+            profileName = profileName,
+            phase = phase,
+            isCountdown = isCountdown,
+            chronometerBaseWallMs = chronometerBaseWallMs,
+            routineSubtext = null
+        )
+    }
+
+    override fun showRunningNotification(
+        sessionId: String,
+        profileName: String,
+        phase: FocusPhase,
+        isCountdown: Boolean,
+        chronometerBaseWallMs: Long,
+        routineSubtext: String?
+    ) {
         if (!permissionChecker.hasNotificationPermission()) return
         ensureChannels()
 
@@ -59,6 +77,7 @@ class FocusNotificationManager(
             .setSmallIcon(R.drawable.ic_stat_focus)
             .setContentTitle(context.getString(R.string.notif_running_title, profileName, phaseLabel))
             .setContentText(context.getString(R.string.notif_running_body))
+            .apply { if (!routineSubtext.isNullOrBlank()) setSubText(routineSubtext) }
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setShowWhen(true)
@@ -91,6 +110,24 @@ class FocusNotificationManager(
         netFocusSec: Long,
         interruptedByReboot: Boolean
     ) {
+        showPausedNotification(
+            sessionId = sessionId,
+            profileName = profileName,
+            phase = phase,
+            netFocusSec = netFocusSec,
+            interruptedByReboot = interruptedByReboot,
+            routineSubtext = null
+        )
+    }
+
+    override fun showPausedNotification(
+        sessionId: String,
+        profileName: String,
+        phase: FocusPhase,
+        netFocusSec: Long,
+        interruptedByReboot: Boolean,
+        routineSubtext: String?
+    ) {
         if (!permissionChecker.hasNotificationPermission()) return
         ensureChannels()
 
@@ -111,6 +148,7 @@ class FocusNotificationManager(
             .setSmallIcon(R.drawable.ic_stat_focus)
             .setContentTitle(title)
             .setContentText(body)
+            .apply { if (!routineSubtext.isNullOrBlank()) setSubText(routineSubtext) }
             .setOngoing(true)
             .setOnlyAlertOnce(!interruptedByReboot)
             .setUsesChronometer(false)
@@ -138,6 +176,22 @@ class FocusNotificationManager(
         completedPhase: FocusPhase,
         nextPhase: FocusPhase?
     ) {
+        showAwaitingNextPhaseNotification(
+            sessionId = sessionId,
+            profileName = profileName,
+            completedPhase = completedPhase,
+            nextPhase = nextPhase,
+            routineSubtext = null
+        )
+    }
+
+    override fun showAwaitingNextPhaseNotification(
+        sessionId: String,
+        profileName: String,
+        completedPhase: FocusPhase,
+        nextPhase: FocusPhase?,
+        routineSubtext: String?
+    ) {
         if (!permissionChecker.hasNotificationPermission()) return
         ensureChannels()
 
@@ -151,6 +205,7 @@ class FocusNotificationManager(
             .setSmallIcon(R.drawable.ic_stat_focus)
             .setContentTitle(context.getString(R.string.notif_awaiting_title, profileName))
             .setContentText(body)
+            .apply { if (!routineSubtext.isNullOrBlank()) setSubText(routineSubtext) }
             .setOngoing(true)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(buildPublicVersion())

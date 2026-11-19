@@ -141,8 +141,9 @@ class SystemBridgesTest {
         assertNotNull(storedRule)
         assertEquals(ZenPolicy.STATE_ALLOW, storedRule?.zenPolicy?.priorityCategoryAlarms)
         assertEquals(ZenPolicy.STATE_ALLOW, storedRule?.zenPolicy?.priorityCategoryMedia)
+        assertEquals(ownedId, recordingGateway.stateUpdates.last().first)
+        assertEquals(Condition.STATE_TRUE, recordingGateway.stateUpdates.last().second.state)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            assertEquals(Condition.STATE_TRUE, notificationManager.getAutomaticZenRuleState(ownedId))
             assertTrue(storedRule?.deviceEffects?.shouldDimWallpaper() == true)
             assertTrue(storedRule?.deviceEffects?.shouldDisplayGrayscale() == true)
         }
@@ -164,12 +165,11 @@ class SystemBridgesTest {
             phase = FocusPhase.FOCUS
         )
         assertEquals(ZenRuleActionResult.Deactivated, paused)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            assertEquals(Condition.STATE_FALSE, notificationManager.getAutomaticZenRuleState(ownedId))
-            assertEquals(Condition.STATE_TRUE, notificationManager.getAutomaticZenRuleState(thirdPartyId))
-        }
+        assertEquals(ownedId, recordingGateway.stateUpdates.last().first)
+        assertEquals(Condition.STATE_FALSE, recordingGateway.stateUpdates.last().second.state)
+        assertTrue(recordingGateway.stateUpdates.none { it.first == thirdPartyId })
+        assertTrue(notificationManager.getAutomaticZenRule(thirdPartyId)?.isEnabled == true)
         assertEquals(NotificationManager.INTERRUPTION_FILTER_ALARMS, notificationManager.currentInterruptionFilter)
-        assertTrue(recordingGateway.stateUpdates.last().second.state == Condition.STATE_FALSE)
     }
 
     @Test

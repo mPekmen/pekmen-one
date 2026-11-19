@@ -1,5 +1,6 @@
 package net.pekmen.one
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,9 +10,15 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.pekmen.one.core.designsystem.theme.PekmenOneTheme
+import net.pekmen.one.core.model.BuiltInProfiles
+import net.pekmen.one.core.model.FocusSessionMode
+import net.pekmen.one.core.model.FocusSessionStatus
 import net.pekmen.one.core.model.UserPreferences
+import net.pekmen.one.core.platform.samsung.AppShortcutsPublisher
+import net.pekmen.one.core.platform.samsung.FocusShortcutCommand
 import net.pekmen.one.navigation.PekmenAppShell
 
 class MainActivity : ComponentActivity() {
@@ -23,6 +30,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        handleShortcutIntent(intent)
 
         setContent {
             val prefs by appContainer.userPreferencesRepository.preferences
@@ -36,17 +44,58 @@ class MainActivity : ComponentActivity() {
                     profileRepository = appContainer.profileRepository,
                     historyRepository = appContainer.historyRepository,
                     learningRepository = appContainer.learningRepository,
+                    plannerRepository = appContainer.plannerRepository,
+                    calendarInsertGateway = appContainer.calendarInsertGateway,
                     userPreferencesRepository = appContainer.userPreferencesRepository,
-                    diagnosticsRepository = appContainer.diagnosticsRepository
+                    diagnosticsRepository = appContainer.diagnosticsRepository,
+                    backupPortabilityService = appContainer.backupPortabilityService
                 )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShortcutIntent(intent)
     }
 
     override fun onStop() {
         super.onStop()
         lifecycleScope.launch {
             appContainer.sessionRepository.checkpointActiveSession()
+        }
+    }
+
+    private fun handleShortcutIntent(intent: Intent?) {
+        val command = AppShortcutsPublisher.parseShortcutIntent(intent) ?: return
+        lifecycleScope.launch {
+            appContainer.profileRepository.ensureSeeded()
+            val active = appContainer.sessionRepository.activeSession.first()
+            when (command) {
+                is FocusShortcutCommand.StartProfile -> {
+                    appContainer.userPreferencesRepository.setSelectedProfileId(command.profileId)
+                    if (active == null) {
+                        appContainer.sessionRepository.startSession(
+                            profileId = command.profileId,
+                            mode = command.mode
+                        )
+                    }
+                }
+                FocusShortcutCommand.ToggleActiveFocus -> {
+                    when (active?.session?.status) {
+                        FocusSessionStatus.RUNNING -> appContainer.sessionRepository.pauseActiveSession()
+                        FocusSessionStatus.PAUSED -> appContainer.sessionRepository.resumeActiveSession()
+                        FocusSessionStatus.AWAITING_NEXT_PHASE ->
+                            appContainer.sessionRepository.startAwaitingNextPhase()
+                        null, FocusSessionStatus.COMPLETED, FocusSessionStatus.ABANDONED -> {
+                            val prefs = appContainer.userPreferencesRepository.preferences.first()
+                            val profileId = prefs.selectedProfileId ?: BuiltInProfiles.STUDY_ID
+                            appContainer.sessionRepository.startSession(profileId, FocusSessionMode.POMODORO)
+                        }
+                    }
+                }
+            }
         }
     }
 }

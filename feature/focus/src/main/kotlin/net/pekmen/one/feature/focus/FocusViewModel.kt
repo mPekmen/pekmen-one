@@ -84,6 +84,7 @@ class FocusViewModel(
     private val selectedSubjectId = MutableStateFlow<String?>(null)
     private val selectedBookId = MutableStateFlow<String?>(null)
     private val selectedTopicId = MutableStateFlow<String?>(null)
+    private val selectedTaskId = MutableStateFlow<String?>(null)
 
     private val isRunningFlow = sessionRepository.activeSession
         .mapStatusRunning()
@@ -188,6 +189,15 @@ class FocusViewModel(
         viewModelScope.launch {
             profileRepository.ensureSeeded()
         }
+        sessionRepository.activeSession
+            .onEach { snapshot ->
+                val currentWrapUp = wrapUpSnapshot.value
+                val wrapUpBecameStale = currentWrapUp != null && snapshot?.session?.id != currentWrapUp.session.id
+                if (!savingWrapUp.value && wrapUpBecameStale) {
+                    wrapUpSnapshot.value = null
+                }
+            }
+            .launchIn(viewModelScope)
         combine(sessionRepository.activeSession, foregroundTicker) { snapshot, elapsedMs ->
             snapshot to elapsedMs
         }.onEach { (snapshot, elapsedMs) ->
@@ -249,15 +259,22 @@ class FocusViewModel(
         }
     }
 
-    fun prepareLearningLink(subjectId: String?, bookId: String?, topicId: String?) {
+    fun prepareLearningLink(
+        subjectId: String?,
+        bookId: String?,
+        topicId: String?,
+        taskId: String? = null
+    ) {
         selectedSubjectId.value = subjectId
         selectedBookId.value = bookId
         selectedTopicId.value = topicId
+        selectedTaskId.value = taskId
     }
 
     fun startFocus() {
         val state = uiState.value
         val profile = state.selectedProfile ?: return
+        val taskId = selectedTaskId.value
         viewModelScope.launch {
             val customArg = if (state.selectedMode == FocusSessionMode.CUSTOM) {
                 state.customMinutes
@@ -265,15 +282,18 @@ class FocusViewModel(
                 null
             }
             val selectedBook = state.books.firstOrNull { it.id == state.selectedBookId }
-            val link = if (
-                state.selectedSubjectId != null ||
-                state.selectedBookId != null ||
-                state.selectedTopicId != null
-            ) {
+            val hasLinkTarget = listOf(
+                state.selectedSubjectId,
+                state.selectedBookId,
+                state.selectedTopicId,
+                taskId
+            ).any { it != null }
+            val link = if (hasLinkTarget) {
                 SessionLearningLink(
                     subjectId = state.selectedSubjectId ?: selectedBook?.subjectId,
                     bookId = state.selectedBookId,
                     topicId = state.selectedTopicId,
+                    taskId = taskId,
                     bookStartPage = selectedBook?.currentPage
                 )
             } else {
@@ -285,6 +305,9 @@ class FocusViewModel(
                 customDurationMinutes = customArg,
                 link = link
             )
+            if (result.isSuccess) {
+                selectedTaskId.value = null
+            }
             errorRes.value = if (result.isFailure) R.string.focus_error_start_failed else null
         }
     }

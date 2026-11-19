@@ -1,23 +1,42 @@
 package net.pekmen.one.core.data
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import net.pekmen.one.core.database.dao.AccountSessionDao
 import net.pekmen.one.core.database.dao.FocusProfileDao
 import net.pekmen.one.core.database.entity.FocusProfileEntity
 import net.pekmen.one.core.database.entity.SyncMetadataEntity
+import net.pekmen.one.core.datastore.UserPreferencesDataStore
 import net.pekmen.one.core.model.BuiltInProfileSlug
 import net.pekmen.one.core.model.BuiltInProfiles
 import net.pekmen.one.core.model.FocusProfile
 import net.pekmen.one.core.model.TimeProvider
 import net.pekmen.one.core.model.UuidV7
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class FocusProfileRepositoryImpl(
     private val profileDao: FocusProfileDao,
-    private val timeProvider: TimeProvider
+    private val timeProvider: TimeProvider,
+    private val accountSessionDao: AccountSessionDao? = null,
+    private val preferencesDataStore: UserPreferencesDataStore? = null
 ) : FocusProfileRepository {
 
-    override val profiles: Flow<List<FocusProfile>> = profileDao.observeActiveProfiles()
-        .map { entities -> entities.map { it.toDomain() } }
+    override val profiles: Flow<List<FocusProfile>> =
+        if (accountSessionDao != null && preferencesDataStore != null) {
+            preferencesDataStore.preferences
+                .map { LearningOutboxEncoder.normalizeOwner(it.activeOwnerUserId) }
+                .distinctUntilChanged()
+                .flatMapLatest { ownerId ->
+                    accountSessionDao.observeActiveProfilesByOwner(ownerId)
+                        .map { entities -> entities.map { it.toDomain() } }
+                }
+        } else {
+            profileDao.observeActiveProfiles().map { entities -> entities.map { it.toDomain() } }
+        }
 
     override suspend fun ensureSeeded() {
         if (profileDao.countProfiles() > 0) return
@@ -51,11 +70,20 @@ class FocusProfileRepositoryImpl(
         val longBreak = request.longBreakMinutes.coerceIn(MIN_MINUTES, MAX_LONG_BREAK_MINUTES)
         val cycles = request.cyclesBeforeLongBreak.coerceIn(1, MAX_CYCLES)
         val cleanedName = request.customName.trim().take(MAX_NAME_LENGTH)
+        val ownerId = preferencesDataStore?.let {
+            LearningOutboxEncoder.normalizeOwner(it.preferences.first().activeOwnerUserId)
+        }
 
         val existing = request.existingId?.let { profileDao.getById(it) }
         if (existing != null) {
+            val isCustom = existing.builtInSlug == BuiltInProfileSlug.CUSTOM.name
+            if (isCustom && preferencesDataStore != null) {
+                require(existing.sync.ownerUserId == ownerId) {
+                    "Profile belongs to a different account"
+                }
+            }
             val updated = existing.copy(
-                customName = if (cleanedName.isEmpty() && existing.builtInSlug != BuiltInProfileSlug.CUSTOM.name) {
+                customName = if (cleanedName.isEmpty() && !isCustom) {
                     null
                 } else {
                     cleanedName.ifEmpty { existing.customName }
@@ -68,7 +96,12 @@ class FocusProfileRepositoryImpl(
                 cyclesBeforeLongBreak = cycles,
                 sync = existing.sync.copy(
                     clientUpdatedAtMs = now,
-                    version = existing.sync.version + 1L
+                    version = existing.sync.version + 1L,
+                    syncStatus = if (isCustom) {
+                        LearningOutboxEncoder.syncStatusFor(existing.sync.ownerUserId)
+                    } else {
+                        existing.sync.syncStatus
+                    }
                 )
             )
             profileDao.update(updated)
@@ -91,7 +124,12 @@ class FocusProfileRepositoryImpl(
             dndEnabled = false,
             sortOrder = nextSortOrder,
             isArchived = false,
-            sync = SyncMetadataEntity(createdAtMs = now, clientUpdatedAtMs = now)
+            sync = SyncMetadataEntity(
+                ownerUserId = ownerId,
+                createdAtMs = now,
+                clientUpdatedAtMs = now,
+                syncStatus = LearningOutboxEncoder.syncStatusFor(ownerId)
+            )
         )
         profileDao.insert(created)
         created.toDomain()

@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Tactile feedback on phase transition notifications -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Optional read-only calendar display; WRITE_CALENDAR is intentionally excluded -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
 
     <application>
         <receiver
@@ -17,6 +19,21 @@
         <receiver
             android:name=".FocusAlarmReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".planner.TaskReminderReceiver"
+            android:exported="false" />
+
+        <service
+            android:name="net.pekmen.one.core.platform.samsung.FocusQuickSettingsTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_stat_focus"
+            android:label="@string/tile_focus_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <receiver
             android:name=".BootCompletedReceiver"

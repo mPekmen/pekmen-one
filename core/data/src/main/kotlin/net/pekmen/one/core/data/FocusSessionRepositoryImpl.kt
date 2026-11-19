@@ -23,9 +23,12 @@ import net.pekmen.one.core.model.FocusSessionStatus
 import net.pekmen.one.core.model.FocusTimeMath
 import net.pekmen.one.core.model.SessionLearningLink
 import net.pekmen.one.core.model.TimeProvider
+import net.pekmen.one.core.model.UserPreferences
 import net.pekmen.one.core.model.UuidV7
 import net.pekmen.one.core.platform.FocusAlarmGateway
 import net.pekmen.one.core.platform.FocusNotificationGateway
+import net.pekmen.one.core.platform.FocusZenTileGateway
+import net.pekmen.one.core.platform.NoOpFocusZenTileGateway
 import net.pekmen.one.core.platform.ProfileNameProvider
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,7 +39,8 @@ class FocusSessionRepositoryImpl(
     private val timeProvider: TimeProvider,
     private val notificationGateway: FocusNotificationGateway,
     private val alarmGateway: FocusAlarmGateway,
-    private val profileNameProvider: ProfileNameProvider
+    private val profileNameProvider: ProfileNameProvider,
+    private val zenTileGateway: FocusZenTileGateway = NoOpFocusZenTileGateway
 ) : FocusSessionRepository {
 
     private val sessionDao = database.focusSessionDao()
@@ -45,6 +49,7 @@ class FocusSessionRepositoryImpl(
     private val stateMutex = Mutex()
     private val transitions = FocusSessionTransitionsHelper(
         sessionDao = sessionDao,
+        accountSessionDao = accountSessionDao,
         profileDao = database.focusProfileDao(),
         learningDao = database.learningDao(),
         learningTopicDao = database.learningTopicDao(),
@@ -105,7 +110,13 @@ class FocusSessionRepositoryImpl(
                 ),
                 nowWall = nowWall,
                 nowElapsed = nowElapsed,
-                gateways = PlatformGateways(notificationGateway, alarmGateway, profileNameProvider)
+                gateways = PlatformGateways(
+                    notificationGateway = notificationGateway,
+                    alarmGateway = alarmGateway,
+                    profileNameProvider = profileNameProvider,
+                    zenTileGateway = zenTileGateway,
+                    prefs = prefs
+                )
             )
             session.toDomain()
         }
@@ -113,13 +124,15 @@ class FocusSessionRepositoryImpl(
 
     override suspend fun pauseActiveSession() {
         stateMutex.withLock {
+            val prefs = preferencesDataStore.preferences.first()
+            val ownerId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
             val nowWall = timeProvider.wallTimeMs()
             val nowElapsed = timeProvider.elapsedRealtimeMs()
             val bootCount = timeProvider.bootCount()
             var pausedEffect: TransitionEffect? = null
 
             database.withTransaction {
-                val active = sessionDao.getActiveSessionOnce() ?: return@withTransaction
+                val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withTransaction
                 if (active.session.status != FocusSessionStatus.RUNNING.name) return@withTransaction
                 val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null }
                 val updatedSegments = transitions.closeOpenSegmentIfPresent(
@@ -140,20 +153,21 @@ class FocusSessionRepositoryImpl(
                 pausedEffect = TransitionEffect.Paused(updatedSession, active.profile, interruptedByReboot = false)
             }
 
-            dispatchEffect(pausedEffect, nowWall, nowElapsed)
+            dispatchEffect(pausedEffect, prefs, nowWall, nowElapsed)
         }
     }
 
     override suspend fun resumeActiveSession() {
         stateMutex.withLock {
             val prefs = preferencesDataStore.preferences.first()
+            val ownerId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
             val nowWall = timeProvider.wallTimeMs()
             val nowElapsed = timeProvider.elapsedRealtimeMs()
             val bootCount = timeProvider.bootCount()
             var outcome: TransitionEffect? = null
 
             database.withTransaction {
-                val active = sessionDao.getActiveSessionOnce() ?: return@withTransaction
+                val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withTransaction
                 if (active.session.status != FocusSessionStatus.PAUSED.name) return@withTransaction
                 val mode = FocusSessionMode.valueOf(active.session.sessionMode)
                 val currentPhase = FocusPhase.valueOf(active.session.currentPhase)
@@ -193,37 +207,41 @@ class FocusSessionRepositoryImpl(
                 outcome = TransitionEffect.Running(updatedSession, active.profile, newSegment, totals.first)
             }
 
-            dispatchEffect(outcome, nowWall, nowElapsed)
+            dispatchEffect(outcome, prefs, nowWall, nowElapsed)
         }
     }
 
     override suspend fun startAwaitingNextPhase() {
         stateMutex.withLock {
+            val prefs = preferencesDataStore.preferences.first()
+            val ownerId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
             val nowWall = timeProvider.wallTimeMs()
             val nowElapsed = timeProvider.elapsedRealtimeMs()
             val bootCount = timeProvider.bootCount()
             var outcome: TransitionEffect? = null
 
             database.withTransaction {
-                val active = sessionDao.getActiveSessionOnce() ?: return@withTransaction
+                val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withTransaction
                 if (active.session.status != FocusSessionStatus.AWAITING_NEXT_PHASE.name) return@withTransaction
                 val nextPhase = active.session.awaitingNextPhase?.let(FocusPhase::valueOf) ?: return@withTransaction
                 outcome = transitions.openNewPhaseLocked(active, nextPhase, nowWall, nowElapsed, bootCount)
             }
 
-            dispatchEffect(outcome, nowWall, nowElapsed)
+            dispatchEffect(outcome, prefs, nowWall, nowElapsed)
         }
     }
 
     override suspend fun skipBreakAndStartFocus() {
         stateMutex.withLock {
+            val prefs = preferencesDataStore.preferences.first()
+            val ownerId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
             val nowWall = timeProvider.wallTimeMs()
             val nowElapsed = timeProvider.elapsedRealtimeMs()
             val bootCount = timeProvider.bootCount()
             var outcome: TransitionEffect? = null
 
             database.withTransaction {
-                val active = sessionDao.getActiveSessionOnce() ?: return@withTransaction
+                val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withTransaction
                 val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null }
                 val updatedSegments = transitions.closeOpenSegmentIfPresent(
                     active, openSeg, nowWall, nowElapsed, bootCount
@@ -245,7 +263,7 @@ class FocusSessionRepositoryImpl(
                 )
             }
 
-            dispatchEffect(outcome, nowWall, nowElapsed)
+            dispatchEffect(outcome, prefs, nowWall, nowElapsed)
         }
     }
 
@@ -254,9 +272,7 @@ class FocusSessionRepositoryImpl(
         val ownerUserId = LearningOutboxEncoder.normalizeOwner(
             preferencesDataStore.preferences.first().activeOwnerUserId
         )
-        return sessionDao.getActiveSessionOnce()
-            ?.takeIf { it.session.sync.ownerUserId == ownerUserId }
-            ?.toActiveSnapshot()
+        return accountSessionDao.getActiveSessionByOwnerOnce(ownerUserId)?.toActiveSnapshot()
     }
 
     override suspend fun completeActiveSession(
@@ -266,13 +282,16 @@ class FocusSessionRepositoryImpl(
         bookEndPage: Int?,
         markTopicMastered: Boolean
     ): FocusSession? = stateMutex.withLock {
+        val ownerId = LearningOutboxEncoder.normalizeOwner(
+            preferencesDataStore.preferences.first().activeOwnerUserId
+        )
         val nowWall = timeProvider.wallTimeMs()
         val nowElapsed = timeProvider.elapsedRealtimeMs()
         val bootCount = timeProvider.bootCount()
         var completed: FocusSessionEntity? = null
 
         database.withTransaction {
-            val active = sessionDao.getActiveSessionOnce()
+            val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId)
             if (active != null && transitions.isCompletableStatus(active.session.status)) {
                 val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null }
                 val updatedSegments = transitions.closeOpenSegmentIfPresent(
@@ -288,7 +307,7 @@ class FocusSessionRepositoryImpl(
                 val resolvedEndPage = transitions.updateLinkedBookOnComplete(active.session, bookEndPage, nowWall)
                 transitions.updateLinkedTopicOnComplete(active.session, markTopicMastered, nowWall)
 
-                val ownerId = active.session.sync.ownerUserId
+                val sessionOwnerId = active.session.sync.ownerUserId
                 val updatedSession = active.session.copy(
                     status = FocusSessionStatus.COMPLETED.name,
                     awaitingNextPhase = null,
@@ -304,7 +323,7 @@ class FocusSessionRepositoryImpl(
                     sync = active.session.sync.copy(
                         clientUpdatedAtMs = nowWall,
                         version = active.session.sync.version + 1L,
-                        syncStatus = LearningOutboxEncoder.syncStatusFor(ownerId)
+                        syncStatus = LearningOutboxEncoder.syncStatusFor(sessionOwnerId)
                     )
                 )
                 sessionDao.updateSession(updatedSession)
@@ -323,17 +342,22 @@ class FocusSessionRepositoryImpl(
         if (completed != null) {
             alarmGateway.cancelPhaseEnd()
             notificationGateway.cancelAllSessionNotifications()
+            zenTileGateway.deactivate()
         }
         completed?.toDomain()
     }
 
     override suspend fun discardActiveSession() {
         stateMutex.withLock {
+            val ownerId = LearningOutboxEncoder.normalizeOwner(
+                preferencesDataStore.preferences.first().activeOwnerUserId
+            )
             val nowWall = timeProvider.wallTimeMs()
             val nowElapsed = timeProvider.elapsedRealtimeMs()
             val bootCount = timeProvider.bootCount()
+            var discarded = false
             database.withTransaction {
-                val active = sessionDao.getActiveSessionOnce() ?: return@withTransaction
+                val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withTransaction
                 val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null }
                 val updatedSegments = transitions.closeOpenSegmentIfPresent(
                     active, openSeg, nowWall, nowElapsed, bootCount
@@ -351,17 +375,24 @@ class FocusSessionRepositoryImpl(
                     )
                 )
                 sessionDao.updateSession(abandoned)
+                discarded = true
             }
-            alarmGateway.cancelPhaseEnd()
-            notificationGateway.cancelAllSessionNotifications()
+            if (discarded) {
+                alarmGateway.cancelPhaseEnd()
+                notificationGateway.cancelAllSessionNotifications()
+                zenTileGateway.deactivate()
+            }
         }
     }
 
     override suspend fun checkpointActiveSession() {
         stateMutex.withLock {
+            val ownerId = LearningOutboxEncoder.normalizeOwner(
+                preferencesDataStore.preferences.first().activeOwnerUserId
+            )
             val nowElapsed = timeProvider.elapsedRealtimeMs()
             val bootCount = timeProvider.bootCount()
-            val active = sessionDao.getActiveSessionOnce() ?: return@withLock
+            val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withLock
             if (active.session.status != FocusSessionStatus.RUNNING.name) return@withLock
             val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null } ?: return@withLock
             if (openSeg.bootCount == bootCount && nowElapsed >= openSeg.startedAtElapsedMs) {
@@ -374,28 +405,30 @@ class FocusSessionRepositoryImpl(
     override suspend fun reconcileActiveSessionAfterBootOrWake() {
         stateMutex.withLock {
             val prefs = preferencesDataStore.preferences.first()
+            val ownerId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
             val nowWall = timeProvider.wallTimeMs()
             val nowElapsed = timeProvider.elapsedRealtimeMs()
             val bootCount = timeProvider.bootCount()
             var effect: TransitionEffect? = null
             database.withTransaction {
-                val active = sessionDao.getActiveSessionOnce() ?: return@withTransaction
+                val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withTransaction
                 effect = transitions.reconcileActiveLocked(active, prefs, nowWall, nowElapsed, bootCount)
             }
-            dispatchEffect(effect, nowWall, nowElapsed)
+            dispatchEffect(effect, prefs, nowWall, nowElapsed)
         }
     }
 
     override suspend fun handlePhaseTimerExpired(sessionId: String, segmentId: String) {
         stateMutex.withLock {
             val prefs = preferencesDataStore.preferences.first()
+            val ownerId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
             val nowWall = timeProvider.wallTimeMs()
             val nowElapsed = timeProvider.elapsedRealtimeMs()
             val bootCount = timeProvider.bootCount()
             var effect: TransitionEffect? = null
 
             database.withTransaction {
-                val active = sessionDao.getActiveSessionOnce() ?: return@withTransaction
+                val active = accountSessionDao.getActiveSessionByOwnerOnce(ownerId) ?: return@withTransaction
                 val openSeg = active.segments.lastOrNull { it.endedAtWallMs == null } ?: return@withTransaction
                 val matchesTarget = active.session.id == sessionId &&
                     active.session.status == FocusSessionStatus.RUNNING.name &&
@@ -420,16 +453,27 @@ class FocusSessionRepositoryImpl(
                 )
             }
 
-            dispatchEffect(effect, nowWall, nowElapsed)
+            dispatchEffect(effect, prefs, nowWall, nowElapsed)
         }
     }
 
-    private fun dispatchEffect(effect: TransitionEffect?, nowWall: Long, nowElapsed: Long) {
+    private fun dispatchEffect(
+        effect: TransitionEffect?,
+        prefs: UserPreferences,
+        nowWall: Long,
+        nowElapsed: Long
+    ) {
         FocusSessionMathHelper.applyTransitionEffect(
             effect = effect,
             nowWall = nowWall,
             nowElapsed = nowElapsed,
-            gateways = PlatformGateways(notificationGateway, alarmGateway, profileNameProvider)
+            gateways = PlatformGateways(
+                notificationGateway = notificationGateway,
+                alarmGateway = alarmGateway,
+                profileNameProvider = profileNameProvider,
+                zenTileGateway = zenTileGateway,
+                prefs = prefs
+            )
         )
     }
 

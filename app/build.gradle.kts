@@ -93,8 +93,10 @@ dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:platform"))
     implementation(project(":core:data"))
+    implementation(project(":core:portability"))
     implementation(project(":feature:focus"))
     implementation(project(":feature:learning"))
+    implementation(project(":feature:planner"))
     implementation(project(":feature:insights"))
     implementation(project(":feature:settings"))
 

@@ -1,5 +1,6 @@
 package net.pekmen.one.core.data
 
+import net.pekmen.one.core.database.dao.AccountSessionDao
 import net.pekmen.one.core.database.dao.FocusProfileDao
 import net.pekmen.one.core.database.dao.FocusSessionDao
 import net.pekmen.one.core.database.dao.LearningDao
@@ -34,6 +35,7 @@ internal data class NewSessionArgs(
 
 internal class FocusSessionTransitionsHelper(
     private val sessionDao: FocusSessionDao,
+    private val accountSessionDao: AccountSessionDao,
     private val profileDao: FocusProfileDao,
     private val learningDao: LearningDao,
     private val learningTopicDao: LearningTopicDao,
@@ -43,10 +45,21 @@ internal class FocusSessionTransitionsHelper(
     suspend fun insertInitialSession(
         args: NewSessionArgs
     ): Triple<FocusSessionEntity, FocusProfileEntity, FocusSessionSegmentEntity> {
-        check(sessionDao.countActiveSessions() == 0) { "An active focus session already exists" }
         val ownerUserId = LearningOutboxEncoder.normalizeOwner(args.prefs.activeOwnerUserId)
+        check(accountSessionDao.getActiveSessionByOwnerOnce(ownerUserId) == null) {
+            "An active focus session already exists"
+        }
         val profile = requireNotNull(profileDao.getById(args.profileId)) {
             "Unknown profile: ${args.profileId}"
+        }
+        require(profile.builtInSlug != "CUSTOM" || profile.sync.ownerUserId == ownerUserId) {
+            "Profile belongs to a different account"
+        }
+        val linkedSubject = args.link?.subjectId?.let {
+            requireNotNull(learningDao.getSubjectById(it)) { "Unknown subject: $it" }
+        }
+        if (linkedSubject != null) {
+            require(linkedSubject.sync.ownerUserId == ownerUserId) { "Subject belongs to a different account" }
         }
         val linkedBook = args.link?.bookId?.let { learningDao.getBookById(it) }
         if (linkedBook != null) {

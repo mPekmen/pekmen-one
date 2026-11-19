@@ -9,6 +9,9 @@ data object FocusRoute
 data object LearningRoute
 
 @Serializable
+data object PlannerRoute
+
+@Serializable
 data object InsightsRoute
 
 @Serializable

@@ -406,8 +406,8 @@ private fun ColorPaletteSelector(
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurface
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        SUBJECT_PALETTE_COLORS.forEach { hex ->
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        items(SUBJECT_PALETTE_COLORS) { hex ->
             val selected = hex == selectedColor
             Box(
                 modifier = Modifier

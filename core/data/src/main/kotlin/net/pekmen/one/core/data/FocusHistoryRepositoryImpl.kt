@@ -33,6 +33,8 @@ class FocusHistoryRepositoryImpl(
     private val sessionDao = database.focusSessionDao()
     private val accountSessionDao = database.accountSessionDao()
     private val profileDao = database.focusProfileDao()
+    private val learningDao = database.learningDao()
+    private val learningTopicDao = database.learningTopicDao()
     private val outboxDao = database.syncOutboxDao()
 
     private val ownerUserIdFlow: Flow<String?> = preferencesDataStore.preferences
@@ -96,6 +98,9 @@ class FocusHistoryRepositoryImpl(
         val profile = requireNotNull(profileDao.getById(profileId)) { "Unknown profile: $profileId" }
         val prefs = preferencesDataStore.preferences.first()
         val ownerUserId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
+        require(profile.builtInSlug != "CUSTOM" || profile.sync.ownerUserId == ownerUserId) {
+            "Profile belongs to a different account"
+        }
         val syncStatus = LearningOutboxEncoder.syncStatusFor(ownerUserId)
         val now = timeProvider.wallTimeMs()
 
@@ -158,6 +163,10 @@ class FocusHistoryRepositoryImpl(
             }
             val prefs = preferencesDataStore.preferences.first()
             val ownerUserId = LearningOutboxEncoder.normalizeOwner(prefs.activeOwnerUserId)
+            require(profile.builtInSlug != "CUSTOM" || profile.sync.ownerUserId == ownerUserId) {
+                "Profile belongs to a different account"
+            }
+            validateRetroactiveLinks(request, ownerUserId)
             val syncStatus = LearningOutboxEncoder.syncStatusFor(ownerUserId)
             val effectiveDay = EffectiveDayCalculator.effectiveDateFor(
                 epochMs = request.startedAtWallMs,
@@ -235,6 +244,30 @@ class FocusHistoryRepositoryImpl(
                     )
                 )
             }
+        }
+    }
+
+    private suspend fun validateRetroactiveLinks(
+        request: RetroactiveSessionRequest,
+        ownerUserId: String?
+    ) {
+        request.subjectId?.let { subjectId ->
+            val subject = requireNotNull(learningDao.getSubjectById(subjectId)) {
+                "Unknown subject: $subjectId"
+            }
+            require(subject.sync.ownerUserId == ownerUserId) { "Subject belongs to a different account" }
+        }
+        request.bookId?.let { bookId ->
+            val book = requireNotNull(learningDao.getBookById(bookId)) {
+                "Unknown book: $bookId"
+            }
+            require(book.sync.ownerUserId == ownerUserId) { "Book belongs to a different account" }
+        }
+        request.topicId?.let { topicId ->
+            val topic = requireNotNull(learningTopicDao.getTopicById(topicId)) {
+                "Unknown topic: $topicId"
+            }
+            require(topic.sync.ownerUserId == ownerUserId) { "Topic belongs to a different account" }
         }
     }
 

@@ -35,8 +35,13 @@
     <string name="settings_status_fallback">Esnek alarm yedeği etkin</string>
     <string name="settings_action_open_system">Yönet</string>
 
+    <string name="settings_system_bridges_section">Odak Modları ve Samsung Rutinleri</string>
+    <string name="settings_zen_integration_label">Pekmen Odak Rahatsız Etmeyin kuralını otomatik etkinleştir</string>
+    <string name="settings_dnd_policy_access_title">Rahatsız Etmeyin erişimi</string>
+    <string name="settings_routine_keyword_label">Bildirimlere [PekmenFocus] anahtar etiketini ekle</string>
+
     <string name="settings_privacy_section">Gizlilik ve Açık Kaynak</string>
-    <string name="settings_privacy_offline_body">M1 sürümünde tamamen çevrimdışıdır. INTERNET izni istenmez; tüm odak kayıtları AGPL-3.0 kapsamında cihazınızda kalır.</string>
+    <string name="settings_privacy_offline_body">Varsayılan olarak çevrimdışı önceliklidir. Standart derlemelerde INTERNET izni istenmez; odak, öğrenme, planlayıcı verileriniz ve yerel yedekleriniz AGPL-3.0 kapsamında cihazınızda kalır.</string>
 
     <string name="settings_cd_decrease_rollover">Gün dönümü saatini azalt</string>
     <string name="settings_cd_increase_rollover">Gün dönümü saatini artır</string>

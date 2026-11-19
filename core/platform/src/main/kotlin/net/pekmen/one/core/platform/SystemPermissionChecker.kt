@@ -2,6 +2,7 @@ package net.pekmen.one.core.platform
 
 import android.Manifest
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -27,5 +28,10 @@ class SystemPermissionChecker(
         }
         val alarmManager = context.getSystemService(AlarmManager::class.java) ?: return false
         return alarmManager.canScheduleExactAlarms()
+    }
+
+    fun hasNotificationPolicyAccess(): Boolean {
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return false
+        return manager.isNotificationPolicyAccessGranted
     }
 }

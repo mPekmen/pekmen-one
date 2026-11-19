@@ -3,6 +3,7 @@ package net.pekmen.one.feature.planner
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
@@ -13,6 +14,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import net.pekmen.one.core.data.planner.SavePlannerTaskRequest
 import net.pekmen.one.core.designsystem.theme.PekmenOneTheme
@@ -175,8 +177,12 @@ class PlannerScreenTest {
         composeRule.onNodeWithText("Görev ekle").performClick()
 
         composeRule.onNodeWithText("Görev başlığı").performTextInput("Almanca kelime tekrarı")
-        composeRule.onNodeWithText("Günlük").performScrollTo().performClick()
-        composeRule.onNodeWithText("Kaydet").performScrollTo().performClick()
+        composeRule.onNodeWithText("Günlük").performScrollTo()
+            .performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Kaydet").performScrollTo()
+            .performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
 
         assertNotNull(savedRequest)
         assertEquals("Almanca kelime tekrarı", savedRequest?.title)

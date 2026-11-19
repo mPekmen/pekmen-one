@@ -6,15 +6,22 @@ import net.pekmen.one.core.database.entity.FocusSessionSegmentEntity
 import net.pekmen.one.core.database.relation.FocusSessionWithDetails
 import net.pekmen.one.core.model.FocusPhase
 import net.pekmen.one.core.model.FocusSessionMode
+import net.pekmen.one.core.model.FocusSessionStatus
 import net.pekmen.one.core.model.FocusTimeMath
+import net.pekmen.one.core.model.UserPreferences
 import net.pekmen.one.core.platform.FocusAlarmGateway
 import net.pekmen.one.core.platform.FocusNotificationGateway
+import net.pekmen.one.core.platform.FocusZenTileGateway
+import net.pekmen.one.core.platform.NoOpFocusZenTileGateway
 import net.pekmen.one.core.platform.ProfileNameProvider
+import net.pekmen.one.core.platform.samsung.SamsungRoutineBridgeHelper
 
 internal data class PlatformGateways(
     val notificationGateway: FocusNotificationGateway,
     val alarmGateway: FocusAlarmGateway,
-    val profileNameProvider: ProfileNameProvider
+    val profileNameProvider: ProfileNameProvider,
+    val zenTileGateway: FocusZenTileGateway = NoOpFocusZenTileGateway,
+    val prefs: UserPreferences? = null
 )
 
 internal sealed interface TransitionEffect {
@@ -105,21 +112,46 @@ internal object FocusSessionMathHelper {
             }
             is TransitionEffect.Paused -> {
                 gateways.alarmGateway.cancelPhaseEnd()
+                val domainProfile = effect.profile.toDomain()
+                val phase = FocusPhase.valueOf(effect.session.currentPhase)
+                val subtext = routineSubtextFor(gateways.prefs, domainProfile, FocusSessionStatus.PAUSED, phase)
                 gateways.notificationGateway.showPausedNotification(
                     sessionId = effect.session.id,
-                    profileName = gateways.profileNameProvider.resolve(effect.profile.toDomain()),
-                    phase = FocusPhase.valueOf(effect.session.currentPhase),
+                    profileName = gateways.profileNameProvider.resolve(domainProfile),
+                    phase = phase,
                     netFocusSec = effect.session.actualFocusSec,
-                    interruptedByReboot = effect.interruptedByReboot
+                    interruptedByReboot = effect.interruptedByReboot,
+                    routineSubtext = subtext
+                )
+                gateways.zenTileGateway.syncSessionState(
+                    zenIntegrationEnabled = gateways.prefs?.zenIntegrationEnabled ?: false,
+                    profile = domainProfile,
+                    status = FocusSessionStatus.PAUSED,
+                    phase = phase
                 )
             }
             is TransitionEffect.Awaiting -> {
                 gateways.alarmGateway.cancelPhaseEnd()
+                val domainProfile = effect.profile.toDomain()
+                val completedPhase = FocusPhase.valueOf(effect.session.currentPhase)
+                val subtext = routineSubtextFor(
+                    gateways.prefs,
+                    domainProfile,
+                    FocusSessionStatus.AWAITING_NEXT_PHASE,
+                    completedPhase
+                )
                 gateways.notificationGateway.showAwaitingNextPhaseNotification(
                     sessionId = effect.session.id,
-                    profileName = gateways.profileNameProvider.resolve(effect.profile.toDomain()),
-                    completedPhase = FocusPhase.valueOf(effect.session.currentPhase),
-                    nextPhase = effect.nextPhase
+                    profileName = gateways.profileNameProvider.resolve(domainProfile),
+                    completedPhase = completedPhase,
+                    nextPhase = effect.nextPhase,
+                    routineSubtext = subtext
+                )
+                gateways.zenTileGateway.syncSessionState(
+                    zenIntegrationEnabled = gateways.prefs?.zenIntegrationEnabled ?: false,
+                    profile = domainProfile,
+                    status = FocusSessionStatus.AWAITING_NEXT_PHASE,
+                    phase = completedPhase
                 )
             }
             null -> Unit
@@ -134,8 +166,10 @@ internal object FocusSessionMathHelper {
     ) {
         val openSegment = running.openSegment
         val plannedMs = openSegment.plannedDurationMs
-        val profileName = gateways.profileNameProvider.resolve(running.profile.toDomain())
+        val domainProfile = running.profile.toDomain()
+        val profileName = gateways.profileNameProvider.resolve(domainProfile)
         val phase = FocusPhase.valueOf(running.session.currentPhase)
+        val subtext = routineSubtextFor(gateways.prefs, domainProfile, FocusSessionStatus.RUNNING, phase)
 
         if (plannedMs != null) {
             val remainingMs = (plannedMs - (nowElapsed - openSegment.startedAtElapsedMs)).coerceAtLeast(1000L)
@@ -149,7 +183,8 @@ internal object FocusSessionMathHelper {
                 profileName = profileName,
                 phase = phase,
                 isCountdown = true,
-                chronometerBaseWallMs = nowWall + remainingMs
+                chronometerBaseWallMs = nowWall + remainingMs,
+                routineSubtext = subtext
             )
         } else {
             gateways.alarmGateway.cancelPhaseEnd()
@@ -159,8 +194,30 @@ internal object FocusSessionMathHelper {
                 profileName = profileName,
                 phase = phase,
                 isCountdown = false,
-                chronometerBaseWallMs = nowWall - running.totalFocusMs - runningOpenMs
+                chronometerBaseWallMs = nowWall - running.totalFocusMs - runningOpenMs,
+                routineSubtext = subtext
             )
         }
+        gateways.zenTileGateway.syncSessionState(
+            zenIntegrationEnabled = gateways.prefs?.zenIntegrationEnabled ?: false,
+            profile = domainProfile,
+            status = FocusSessionStatus.RUNNING,
+            phase = phase
+        )
+    }
+
+    private fun routineSubtextFor(
+        prefs: UserPreferences?,
+        profile: net.pekmen.one.core.model.FocusProfile,
+        status: FocusSessionStatus,
+        phase: FocusPhase
+    ): String? {
+        return SamsungRoutineBridgeHelper.appendKeywordSubtext(
+            baseSubtext = null,
+            routineKeywordEnabled = prefs?.routineKeywordEnabled ?: false,
+            slug = profile.builtInSlug,
+            status = status,
+            phase = phase
+        )
     }
 }
