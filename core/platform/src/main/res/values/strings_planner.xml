@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_planner_reminders_name">Task Reminders</string>
+    <string name="channel_planner_reminders_desc">Scheduled local reminders for planned tasks</string>
+
+    <string name="notif_task_reminder_public_title">Pekmen One</string>
+    <string name="notif_task_reminder_public_body">Scheduled task reminder</string>
+    <string name="notif_task_reminder_body">Planned task reminder</string>
+
+    <string name="planner_untitled_calendar_event">Untitled event</string>
+</resources>

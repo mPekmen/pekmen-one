@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="planner_title">Planlayıcı</string>
+    <string name="planner_add_task">Görev ekle</string>
+
+    <string name="planner_section_calendar">Takvim gündemi</string>
+    <string name="planner_section_overdue">Gecikenler</string>
+    <string name="planner_section_open">Görevler</string>
+    <string name="planner_section_completed">Tamamlananlar</string>
+
+    <string name="planner_empty_title">Henüz planlanmış görev yok</string>
+    <string name="planner_empty_body">İsteğe bağlı bitiş tarihi, hatırlatıcı ve tekrar kurallarıyla çalışma görevleri ekleyin.</string>
+
+    <string name="planner_calendar_banner_title">Takvim etkinliklerini göster</string>
+    <string name="planner_calendar_banner_body">Takvim programınızı görevlerinizle birlikte görmek için salt okunur takvim izni verin. Pekmen One hiçbir zaman takvim yazma izni istemez.</string>
+    <string name="planner_calendar_banner_allow">İzin ver</string>
+    <string name="planner_calendar_banner_dismiss">Şimdi değil</string>
+    <string name="planner_calendar_empty">Önümüzdeki 7 günde yaklaşan takvim etkinliği yok.</string>
+    <string name="planner_calendar_all_day">Tüm gün</string>
+
+    <string name="planner_action_start_focus">Odağı başlat</string>
+    <string name="planner_action_export_calendar">Takvime aktar</string>
+    <string name="planner_export_unavailable">Etkinlik eklemek için takvim uygulaması bulunamadı.</string>
+
+    <string name="planner_due_label">Bitiş: %1$s</string>
+    <string name="planner_reminder_label">Hatırlatma: %1$s</string>
+
+    <string name="planner_recurrence_none">Tek sefer</string>
+    <string name="planner_recurrence_daily">Günlük</string>
+    <string name="planner_recurrence_weekly">Haftalık</string>
+
+    <string name="planner_priority_low">Düşük</string>
+    <string name="planner_priority_normal">Normal</string>
+    <string name="planner_priority_high">Yüksek</string>
+
+    <string name="planner_editor_create_title">Yeni görev</string>
+    <string name="planner_editor_edit_title">Görevi düzenle</string>
+    <string name="planner_editor_title_label">Görev başlığı</string>
+    <string name="planner_editor_notes_label">Notlar (isteğe bağlı)</string>
+    <string name="planner_editor_subject_label">Konu (isteğe bağlı)</string>
+    <string name="planner_editor_subject_none">Konu yok</string>
+    <string name="planner_editor_priority_label">Öncelik</string>
+    <string name="planner_editor_due_label">Bitiş tarihi</string>
+    <string name="planner_due_none">Yok</string>
+    <string name="planner_due_today">Bugün</string>
+    <string name="planner_due_tomorrow">Yarın</string>
+    <string name="planner_due_next_week">+7 gün</string>
+    <string name="planner_editor_time_label">Saat</string>
+    <string name="planner_editor_reminder_label">Yerel hatırlatma</string>
+    <string name="planner_reminder_off">Kapalı</string>
+    <string name="planner_reminder_at_due">Bitiş saatinde</string>
+    <string name="planner_reminder_15m_before">15 dk önce</string>
+    <string name="planner_reminder_1h_before">1 saat önce</string>
+    <string name="planner_reminder_in_1h">1 saat sonra</string>
+    <string name="planner_editor_recurrence_label">Tekrar</string>
+    <string name="planner_editor_cancel_task">Görevi iptal et</string>
+    <string name="planner_error_blank_title">Bir görev başlığı girin.</string>
+
+    <string name="planner_cd_complete_task">Görevi tamamlandı olarak işaretle</string>
+    <string name="planner_cd_reopen_task">Görevi yeniden aç</string>
+    <string name="planner_cd_delete_task">Görevi sil</string>
+</resources>

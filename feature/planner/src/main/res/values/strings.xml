@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="planner_title">Planner</string>
+    <string name="planner_add_task">Add task</string>
+
+    <string name="planner_section_calendar">Calendar agenda</string>
+    <string name="planner_section_overdue">Overdue</string>
+    <string name="planner_section_open">Tasks</string>
+    <string name="planner_section_completed">Completed</string>
+
+    <string name="planner_empty_title">Nothing planned yet</string>
+    <string name="planner_empty_body">Add study tasks with optional due dates, reminders, and repeat rules.</string>
+
+    <string name="planner_calendar_banner_title">Show calendar events</string>
+    <string name="planner_calendar_banner_body">Grant read-only calendar access to view your schedule alongside tasks. Pekmen One never requests write calendar permission.</string>
+    <string name="planner_calendar_banner_allow">Allow</string>
+    <string name="planner_calendar_banner_dismiss">Not now</string>
+    <string name="planner_calendar_empty">No upcoming calendar events in the next 7 days.</string>
+    <string name="planner_calendar_all_day">All day</string>
+
+    <string name="planner_action_start_focus">Start Focus</string>
+    <string name="planner_action_export_calendar">Export to Calendar</string>
+    <string name="planner_export_unavailable">No calendar app found to insert event.</string>
+
+    <string name="planner_due_label">Due %1$s</string>
+    <string name="planner_reminder_label">Reminder %1$s</string>
+
+    <string name="planner_recurrence_none">Once</string>
+    <string name="planner_recurrence_daily">Daily</string>
+    <string name="planner_recurrence_weekly">Weekly</string>
+
+    <string name="planner_priority_low">Low</string>
+    <string name="planner_priority_normal">Normal</string>
+    <string name="planner_priority_high">High</string>
+
+    <string name="planner_editor_create_title">New task</string>
+    <string name="planner_editor_edit_title">Edit task</string>
+    <string name="planner_editor_title_label">Task title</string>
+    <string name="planner_editor_notes_label">Notes (optional)</string>
+    <string name="planner_editor_subject_label">Subject (optional)</string>
+    <string name="planner_editor_subject_none">No subject</string>
+    <string name="planner_editor_priority_label">Priority</string>
+    <string name="planner_editor_due_label">Due date</string>
+    <string name="planner_due_none">None</string>
+    <string name="planner_due_today">Today</string>
+    <string name="planner_due_tomorrow">Tomorrow</string>
+    <string name="planner_due_next_week">+7 days</string>
+    <string name="planner_editor_time_label">Time</string>
+    <string name="planner_editor_reminder_label">Local reminder</string>
+    <string name="planner_reminder_off">Off</string>
+    <string name="planner_reminder_at_due">At due time</string>
+    <string name="planner_reminder_15m_before">15 min before</string>
+    <string name="planner_reminder_1h_before">1 hour before</string>
+    <string name="planner_reminder_in_1h">In 1 hour</string>
+    <string name="planner_editor_recurrence_label">Repeat</string>
+    <string name="planner_editor_cancel_task">Cancel task</string>
+    <string name="planner_error_blank_title">Enter a task title.</string>
+
+    <string name="planner_cd_complete_task">Mark task completed</string>
+    <string name="planner_cd_reopen_task">Reopen task</string>
+    <string name="planner_cd_delete_task">Delete task</string>
+</resources>
